@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Registration | NIE Girls' Hostel</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<header>
+    <div class="header-inner">
+        <div class="header-copy">
+            <div class="brand-lockup">
+                <img src="{{ url_for('static', filename='nie-logo.svg') }}"
+                     alt="The National Institute of Engineering logo">
+                <p class="eyebrow">NIE MYSURU · STUDENT ENROLLMENT</p>
+            </div>
+            <h1>Student Account Registration</h1>
+            <p>Create your portal account. The warden will assign your room after registration.</p>
+        </div>
+    </div>
+</header>
+
+<main class="container">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for category, message in messages %}
+            <div class="message {{ category }}">{{ message }}</div>
+        {% endfor %}
+    {% endwith %}
+
+    <section class="registration-overview" aria-labelledby="registration-overview-title">
+        <div class="registration-overview-copy">
+            <p class="section-eyebrow">QUICK &amp; SIMPLE</p>
+            <h2 id="registration-overview-title">One form for both campuses</h2>
+            <p>Choose your hostel, enter your details, and submit for warden review.</p>
+        </div>
+        <ol class="registration-steps" aria-label="Registration process">
+            <li><span>01</span><strong>Create account</strong></li>
+            <li><span>02</span><strong>Warden review</strong></li>
+            <li><span>03</span><strong>Room allocation</strong></li>
+        </ol>
+    </section>
+
+    <section class="panel registration-form-panel" aria-label="Student account details">
+        <form action="{{ url_for('register_student') }}" method="POST">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+            <fieldset class="campus-selector">
+                <legend>Choose your girls' hostel campus <span>Required</span></legend>
+                <div class="campus-option-grid">
+                    {% for campus in campuses %}
+                        <label class="campus-option">
+                            <input type="radio" name="campus" value="{{ campus }}" required>
+                            <span class="campus-mark" aria-hidden="true">{{ campus[0] }}</span>
+                            <span class="campus-option-copy">
+                                <strong>{{ campus }}</strong>
+                                <small>Girls' Hostel</small>
+                            </span>
+                        </label>
+                    {% endfor %}
+                </div>
+            </fieldset>
+
+            <div class="form-grid">
+                <div class="form-field">
+                    <label for="student-name">Full name</label>
+                    <input id="student-name"
+                           name="name"
+                           type="text"
+                           autocomplete="name"
+                           required>
+                </div>
+
+                <div class="form-field">
+                    <label for="student-usn">USN</label>
+                    <input id="student-usn"
+                           name="usn"
+                           type="text"
+                           autocomplete="username"
+                           autocapitalize="characters"
+                           required>
+                </div>
+
+                <div class="form-field">
+                    <label for="student-department">Department</label>
+                    <input id="student-department"
+                           name="department"
+                           type="text"
+                           required>
+                </div>
+
+                <div class="form-field">
+                    <label for="student-year">Year</label>
+                    <select id="student-year" name="year" required>
+                        <option value="">Select year</option>
+                        <option value="1st Year">1st Year</option>
+                        <option value="2nd Year">2nd Year</option>
+                        <option value="3rd Year">3rd Year</option>
+                        <option value="4th Year">4th Year</option>
+                    </select>
+                </div>
+
+                <div class="form-field">
+                    <label for="student-password">Create password</label>
+                    <input id="student-password"
+                           name="password"
+                           type="password"
+                           minlength="8"
+                           autocomplete="new-password"
+                           required>
+                </div>
+
+                <div class="form-field">
+                    <label for="student-password-confirm">Confirm password</label>
+                    <input id="student-password-confirm"
+                           name="password_confirmation"
+                           type="password"
+                           minlength="8"
+                           autocomplete="new-password"
+                           required>
+                </div>
+            </div>
+
+            <p class="registration-note">
+                Use at least 8 characters. The warden will allocate a room after registration.
+            </p>
+
+            <button class="add-btn registration-submit" type="submit">
+                Create student account
+            </button>
+        </form>
+    </section>
+
+    <p class="auth-footer">
+        Already have an account?
+        <a href="{{ url_for('login') }}">Sign in</a>
+    </p>
+</main>
+
+<footer><p>NIE Mysuru · Girls' Hostel Management</p></footer>
+<script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

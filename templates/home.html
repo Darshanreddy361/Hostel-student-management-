@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+          content="A connected hostel portal for student registration, room allocation, and complaint tracking at NIE Mysuru.">
+    <title>NIE Girls' Hostel Portal | Mysuru</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="landing-page">
+<header class="landing-header">
+    <nav class="landing-nav" aria-label="Main navigation">
+        <a class="landing-brand" href="{{ url_for('index') }}">
+            <span class="landing-brand-logo">
+                <img src="{{ url_for('static', filename='nie-logo.svg') }}"
+                     alt="The National Institute of Engineering logo">
+            </span>
+            <span>
+                <strong>NIE MYSURU</strong>
+                <small>GIRLS' HOSTEL PORTAL</small>
+            </span>
+        </a>
+
+        <div class="landing-nav-links">
+            <a href="#platform">Platform</a>
+            <a href="#campuses">Campuses</a>
+            <a href="#workflow">How it works</a>
+            <a href="#safeguards">Safeguards</a>
+        </div>
+
+        <div class="landing-nav-actions">
+            <a class="landing-nav-login" href="{{ url_for('login') }}">Student sign in</a>
+            <a class="landing-nav-warden" href="{{ url_for('warden_login') }}">Warden sign in</a>
+        </div>
+    </nav>
+</header>
+
+<main>
+    <section class="landing-hero" id="top">
+        <div class="landing-shell landing-hero-grid">
+            <div class="landing-hero-copy">
+                <p class="landing-eyebrow">STUDENT LIFE · HOSTEL OPERATIONS</p>
+                <h1>Hostel management,<br><span>all in one place.</span></h1>
+                <p class="landing-hero-description">
+                    One connected portal for student accounts, room allocation,
+                    availability tracking, and complaints—from first sign-in to resolution.
+                </p>
+                <div class="landing-hero-actions">
+                    <a class="landing-primary-action" href="{{ url_for('register_student') }}">
+                        Create a student account
+                    </a>
+                    <a class="landing-secondary-action" href="#platform">
+                        Explore the platform <span aria-hidden="true">↓</span>
+                    </a>
+                </div>
+                <div class="landing-role-note">
+                    <span><strong>Students</strong> register and follow their complaints</span>
+                    <span><strong>Wardens</strong> manage rooms and resolve issues</span>
+                </div>
+            </div>
+
+            <aside class="landing-workflow-card" aria-label="Hostel portal workflow preview">
+                <div class="landing-card-topline">
+                    <span class="landing-live-mark" aria-hidden="true"></span>
+                    <span>THE HOSTEL OPERATIONS LOOP</span>
+                    <span class="landing-card-label">ONE PORTAL</span>
+                </div>
+                <h2>From registration to resolution</h2>
+                <p class="landing-card-intro">
+                    Each role gets a clear workspace and the next step stays visible.
+                </p>
+
+                <div class="landing-flow">
+                    <article class="landing-flow-step">
+                        <span class="landing-flow-number">01</span>
+                        <div>
+                            <strong>Student account</strong>
+                            <small>Campus-based registration and sign-in</small>
+                        </div>
+                        <span class="landing-flow-role">STUDENT</span>
+                    </article>
+                    <div class="landing-flow-connector" aria-hidden="true"></div>
+                    <article class="landing-flow-step">
+                        <span class="landing-flow-number">02</span>
+                        <div>
+                            <strong>Room allocation</strong>
+                            <small>Warden assigns and tracks available beds</small>
+                        </div>
+                        <span class="landing-flow-role">WARDEN</span>
+                    </article>
+                    <div class="landing-flow-connector" aria-hidden="true"></div>
+                    <article class="landing-flow-step">
+                        <span class="landing-flow-number">03</span>
+                        <div>
+                            <strong>Issue resolution</strong>
+                            <small>Submit, review, and mark complaints resolved</small>
+                        </div>
+                        <span class="landing-flow-role">SHARED</span>
+                    </article>
+                </div>
+
+                <div class="landing-card-footer">
+                    <span>Clear ownership</span>
+                    <span>Visible status</span>
+                    <span>Connected workflow</span>
+                </div>
+            </aside>
+        </div>
+    </section>
+
+    <section class="landing-metrics landing-shell" aria-label="Platform at a glance">
+        <article class="landing-metric">
+            <span class="landing-metric-icon">01</span>
+            <div><strong>2</strong><span>campus registration paths</span></div>
+        </article>
+        <article class="landing-metric">
+            <span class="landing-metric-icon">02</span>
+            <div><strong>500</strong><span>configured demo rooms</span></div>
+        </article>
+        <article class="landing-metric">
+            <span class="landing-metric-icon">03</span>
+            <div><strong>3</strong><span>spaces per configured room</span></div>
+        </article>
+        <article class="landing-metric">
+            <span class="landing-metric-icon">04</span>
+            <div><strong>2</strong><span>role-specific workspaces</span></div>
+        </article>
+    </section>
+
+    <section class="landing-section landing-shell" id="platform">
+        <div class="landing-section-heading">
+            <p class="landing-section-kicker">THE PLATFORM</p>
+            <h2>Less chasing. More clarity.</h2>
+            <p>Everyday hostel tasks are organized around the people responsible for them.</p>
+        </div>
+
+        <div class="landing-feature-grid">
+            <article class="landing-feature-card">
+                <span class="landing-feature-index">01 / ENROLLMENT</span>
+                <h3>Campus-specific registration</h3>
+                <p>
+                    Students create an account through the South or North Campus
+                    girls' hostel form using their USN and password.
+                </p>
+            </article>
+            <article class="landing-feature-card">
+                <span class="landing-feature-index">02 / ALLOCATION</span>
+                <h3>Room-by-room visibility</h3>
+                <p>
+                    Wardens can search rooms, filter by campus or availability,
+                    and see occupied and open spaces before managing allocations.
+                </p>
+            </article>
+            <article class="landing-feature-card">
+                <span class="landing-feature-index">03 / COMPLAINTS</span>
+                <h3>A trackable issue lifecycle</h3>
+                <p>
+                    Students submit room issues and follow status. Wardens review
+                    the inbox and mark work resolved.
+                </p>
+            </article>
+            <article class="landing-feature-card">
+                <span class="landing-feature-index">04 / ACCESS</span>
+                <h3>Separate student and warden views</h3>
+                <p>
+                    Students see their own account and complaints; wardens get
+                    management tools for students, rooms, and the complaint inbox.
+                </p>
+            </article>
+        </div>
+    </section>
+
+    <section class="landing-campus-section" id="campuses">
+        <div class="landing-shell">
+            <div class="landing-section-heading">
+                <p class="landing-section-kicker">CAMPUS CONTEXT</p>
+                <h2>Designed around both NIE Mysuru campuses.</h2>
+                <p>Campus facilities are presented separately from the application's demo room inventory.</p>
+            </div>
+
+            <div class="landing-campus-grid">
+                <article class="landing-campus-card">
+                    <div class="landing-campus-mark" aria-hidden="true">S</div>
+                    <div>
+                        <p>SOUTH CAMPUS</p>
+                        <h3>Girls' Hostel</h3>
+                    </div>
+                    <strong>309 <span>reference beds</span></strong>
+                </article>
+                <article class="landing-campus-card landing-campus-card-north">
+                    <div class="landing-campus-mark" aria-hidden="true">N</div>
+                    <div>
+                        <p>NORTH CAMPUS</p>
+                        <h3>Girls' Hostel</h3>
+                    </div>
+                    <strong>480 <span>reference beds</span></strong>
+                </article>
+            </div>
+
+            <p class="landing-capacity-note">
+                Reference capacities are informational. The demo allocation inventory
+                is configured separately with 250 rooms per campus (S-101–S-350 and
+                N-101–N-350), with up to 3 spaces per room.
+            </p>
+        </div>
+    </section>
+
+    <section class="landing-section landing-shell" id="workflow">
+        <div class="landing-section-heading">
+            <p class="landing-section-kicker">A CLEAR HANDOFF</p>
+            <h2>Built for students and wardens.</h2>
+            <p>Simple steps make responsibilities easy to understand during a busy day.</p>
+        </div>
+
+        <div class="landing-workflow-grid">
+            <article class="landing-workflow-panel">
+                <p class="landing-workflow-label">FOR STUDENTS</p>
+                <h3>Know what happens next.</h3>
+                <ol>
+                    <li><span>1</span><div><strong>Create your account</strong><small>Choose the correct campus and sign in with your USN.</small></div></li>
+                    <li><span>2</span><div><strong>Wait for room allocation</strong><small>The warden manages room assignments and availability.</small></div></li>
+                    <li><span>3</span><div><strong>Report and follow issues</strong><small>Keep complaints and their resolution status in one place.</small></div></li>
+                </ol>
+            </article>
+            <article class="landing-workflow-panel landing-workflow-panel-warden">
+                <p class="landing-workflow-label">FOR WARDENS</p>
+                <h3>Manage operations in one view.</h3>
+                <ol>
+                    <li><span>1</span><div><strong>Review student records</strong><small>Keep campus, department, year, and room details together.</small></div></li>
+                    <li><span>2</span><div><strong>Manage room occupancy</strong><small>Search the inventory and track available spaces.</small></div></li>
+                    <li><span>3</span><div><strong>Close the complaint loop</strong><small>Review issues and mark them resolved when complete.</small></div></li>
+                </ol>
+            </article>
+        </div>
+    </section>
+
+    <section class="landing-safeguards-section" id="safeguards">
+        <div class="landing-shell landing-safeguards-grid">
+            <div class="landing-section-heading">
+                <p class="landing-section-kicker">BUILT-IN SAFEGUARDS</p>
+                <h2>Practical protections for everyday use.</h2>
+                <p>
+                    The portal uses standard safeguards in its account and form flows.
+                    It is a project demo, not a substitute for an institutional security review.
+                </p>
+            </div>
+            <div class="landing-safeguard-list">
+                <article><span>01</span><div><strong>Hashed passwords</strong><p>Passwords are stored as hashes rather than readable text.</p></div></article>
+                <article><span>02</span><div><strong>Role-checked actions</strong><p>Student and warden operations are restricted by account role.</p></div></article>
+                <article><span>03</span><div><strong>Protected form submissions</strong><p>State-changing forms include CSRF validation.</p></div></article>
+            </div>
+        </div>
+    </section>
+
+    <section class="landing-final-cta">
+        <div class="landing-shell landing-final-cta-inner">
+            <div>
+                <p class="landing-section-kicker">READY TO EXPLORE?</p>
+                <h2>A better-managed hostel starts with a clear workflow.</h2>
+                <p>Open the student portal, create an account, or sign in to the warden workspace.</p>
+            </div>
+            <div class="landing-final-actions">
+                <a class="landing-primary-action" href="{{ url_for('login') }}">Student sign in</a>
+                <a class="landing-final-secondary" href="{{ url_for('warden_login') }}">Warden sign in</a>
+            </div>
+        </div>
+    </section>
+</main>
+
+<footer class="landing-footer">
+    <div class="landing-shell landing-footer-inner">
+        <span>NIE Mysuru · Girls' Hostel Portal</span>
+        <span>Application demo · Flask and SQLite</span>
+    </div>
+</footer>
+</body>
+</html>

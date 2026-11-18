@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daily Attendance | NIE Warden</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<header>
+    <div class="header-inner">
+        <div class="header-copy">
+            <div class="brand-lockup">
+                <img src="{{ url_for('static', filename='nie-logo.svg') }}"
+                     alt="The National Institute of Engineering logo">
+                <p class="eyebrow">NIE MYSURU · WARDEN PORTAL</p>
+            </div>
+            <h1>Daily Hostel Attendance</h1>
+            <p>Record and review student attendance without the paper register.</p>
+        </div>
+        <div class="header-actions">
+            <a class="header-link" href="{{ url_for('warden_dashboard') }}">
+                Warden dashboard
+            </a>
+            <div class="account-menu">
+                <span>{{ warden_username }}</span>
+                <form action="{{ url_for('logout') }}" method="POST">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button class="logout-btn" type="submit">Log out</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</header>
+
+<nav class="workspace-nav" aria-label="Warden workspace">
+    <div class="workspace-nav-inner">
+        <a href="{{ url_for('warden_dashboard') }}">Dashboard</a>
+        <a href="#attendance-register">Attendance register</a>
+    </div>
+</nav>
+
+<main class="container attendance-page">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for category, message in messages %}
+            <div class="message {{ category }}">{{ message }}</div>
+        {% endfor %}
+    {% endwith %}
+
+    <section class="panel attendance-filter-panel" aria-labelledby="attendance-filter-title">
+        <div class="section-heading">
+            <div>
+                <h2 id="attendance-filter-title">Select date and campus</h2>
+                <p>Review a past register or take attendance for today.</p>
+            </div>
+            <a class="attendance-today-link"
+               href="{{ url_for('warden_attendance', date=today, campus=campus_filter) }}">
+                Go to today
+            </a>
+        </div>
+        <form class="attendance-filter-form"
+              action="{{ url_for('warden_attendance') }}"
+              method="GET">
+            <label class="room-filter" for="attendance-date">
+                <span>Attendance date</span>
+                <input id="attendance-date"
+                       name="date"
+                       type="date"
+                       value="{{ attendance_date.isoformat() }}"
+                       max="{{ today }}"
+                       required>
+            </label>
+            <label class="room-filter" for="attendance-campus">
+                <span>Campus</span>
+                <select id="attendance-campus" name="campus">
+                    <option value="">All campuses</option>
+                    {% for campus in campuses %}
+                        <option value="{{ campus }}"
+                                {% if campus_filter == campus %}selected{% endif %}>
+                            {{ campus }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </label>
+            <button class="filter-btn" type="submit">View register</button>
+        </form>
+    </section>
+
+    <section class="dashboard attendance-summary" aria-label="Attendance summary">
+        <article class="card">
+            <h3>Present</h3>
+            <h2>{{ status_counts["Present"] }}</h2>
+        </article>
+        <article class="card attendance-card-absent">
+            <h3>Absent</h3>
+            <h2>{{ status_counts["Absent"] }}</h2>
+        </article>
+        <article class="card attendance-card-leave">
+            <h3>On leave</h3>
+            <h2>{{ status_counts["On Leave"] }}</h2>
+        </article>
+        <article class="card attendance-card-unmarked">
+            <h3>Not yet marked</h3>
+            <h2>{{ unmarked_count }}</h2>
+        </article>
+    </section>
+
+    <section class="panel attendance-register-panel" id="attendance-register">
+        <div class="section-heading attendance-register-heading">
+            <div>
+                <h2>Daily register</h2>
+                <p>{{ attendance_date_label }} · {{ students|length }} students</p>
+            </div>
+            <div class="attendance-tools">
+                <label class="attendance-search" for="attendance-search">
+                    <span>Find a student</span>
+                    <input id="attendance-search"
+                           type="search"
+                           placeholder="Name, USN, room"
+                           data-attendance-search>
+                </label>
+                <button class="filter-btn attendance-mark-all"
+                        type="button"
+                        data-attendance-mark-all
+                        {% if not students %}disabled{% endif %}>
+                    Set all to present
+                </button>
+            </div>
+        </div>
+
+        <form action="{{ url_for('warden_attendance') }}" method="POST">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="hidden"
+                   name="attendance_date"
+                   value="{{ attendance_date.isoformat() }}">
+            <input type="hidden" name="campus" value="{{ campus_filter }}">
+
+            <div class="table-container">
+                <table class="attendance-table">
+                    <thead>
+                        <tr>
+                            <th>Student</th>
+                            <th>Campus</th>
+                            <th>Room</th>
+                            <th>Attendance status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for student in students %}
+                            <tr data-attendance-row
+                                data-search="{{ (student.name ~ ' ' ~ student.usn ~ ' ' ~ student.campus ~ ' ' ~ (student.room_number or 'Not assigned'))|lower }}">
+                                <td class="attendance-student-cell">
+                                    <strong>{{ student.name }}</strong>
+                                    <small>{{ student.usn }}</small>
+                                </td>
+                                <td>{{ student.campus }}</td>
+                                <td>{{ student.room_number or "Not assigned" }}</td>
+                                <td>
+                                    <fieldset class="attendance-status-options">
+                                        <legend class="visually-hidden">
+                                            Attendance status for {{ student.name }} ({{ student.usn }})
+                                        </legend>
+                                        {% for status in attendance_statuses %}
+                                            <label class="attendance-status-choice">
+                                                <input type="radio"
+                                                       name="attendance_{{ student.id }}"
+                                                       value="{{ status }}"
+                                                       data-attendance-status
+                                                       {% if student.attendance_status == status %}checked{% endif %}
+                                                       required>
+                                                <span>{{ status }}</span>
+                                            </label>
+                                        {% endfor %}
+                                    </fieldset>
+                                </td>
+                            </tr>
+                        {% else %}
+                            <tr>
+                                <td colspan="4" class="empty-state">
+                                    No students match this campus selection.
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="attendance-submit-row">
+                <p>Set a status for each student before saving. You can update this register later.</p>
+                <button class="add-btn"
+                        type="submit"
+                        {% if not students %}disabled{% endif %}>
+                    Save attendance
+                </button>
+            </div>
+        </form>
+    </section>
+</main>
+
+<footer><p>NIE Mysuru · Girls' Hostel Management</p></footer>
+<script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

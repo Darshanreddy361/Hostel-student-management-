@@ -1,0 +1,23 @@
+
+# Ignore virtual environment
+venv/
+.venv/
+
+# Ignore Python cache files
+__pycache__/
+*.pyc
+*.pyo
+
+# Ignore Git files
+.git/
+.gitignore
+
+# Ignore local database
+hostel.db
+
+# Ignore environment files
+.env
+
+# Ignore temporary files
+*.log
+.DS_Store

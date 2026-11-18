@@ -1,0 +1,425 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NIE Warden Dashboard</title>
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+
+<header>
+    <div class="header-inner">
+        <div class="header-copy">
+            <div class="brand-lockup">
+                <img src="{{ url_for('static', filename='nie-logo.svg') }}"
+                     alt="The National Institute of Engineering logo">
+                <p class="eyebrow">NIE MYSURU</p>
+            </div>
+            <h1>Warden Dashboard</h1>
+            <p>Manage student registrations, room allocation, daily attendance, and complaints.</p>
+        </div>
+        <div class="header-actions">
+            <a class="header-link" href="{{ url_for('warden_attendance') }}">
+                Take attendance
+            </a>
+            <a class="header-link" href="{{ url_for('register_student') }}">
+                Register a student
+            </a>
+            <div class="account-menu">
+                <span>{{ warden_username }}</span>
+                <form action="{{ url_for('logout') }}" method="POST">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button class="logout-btn" type="submit">Log out</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</header>
+
+<nav class="workspace-nav" aria-label="Warden dashboard sections">
+    <div class="workspace-nav-inner">
+        <a href="#overview">Overview</a>
+        <a href="{{ url_for('warden_attendance') }}">Daily attendance</a>
+        <a href="#complaints">Complaints <span>{{ pending_complaints }}</span></a>
+        <a href="#student-directory">Students</a>
+        <a href="#room-availability">Room availability</a>
+    </div>
+</nav>
+
+<div class="container">
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for category, message in messages %}
+            <div class="message {{ category }}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endwith %}
+
+    <!-- Dashboard cards -->
+    <section class="dashboard" id="overview">
+
+        <div class="card">
+            <h3>Total Students</h3>
+            <h2>{{ total_students }}</h2>
+        </div>
+
+        <div class="card">
+            <h3>Allocated Students</h3>
+            <h2>{{ allocated }}</h2>
+        </div>
+
+        <div class="card">
+            <h3>Available Beds</h3>
+            <h2>{{ available }}</h2>
+        </div>
+
+        <div class="card">
+            <h3>Open Complaints</h3>
+            <h2>{{ pending_complaints }}</h2>
+        </div>
+
+    </section>
+
+    <section class="panel">
+        <h2>Campus Facilities</h2>
+
+        <div class="facility-grid">
+            <div class="facility-card">
+                <h3>South Campus</h3>
+                <p>Girls' Hostel</p>
+                <strong>309 beds</strong>
+            </div>
+
+            <div class="facility-card">
+                <h3>North Campus</h3>
+                <p>Girls' Hostel</p>
+                <strong>480 beds</strong>
+            </div>
+        </div>
+
+        <p class="facility-note">
+            Campus figures are informational; room availability below reflects
+            rooms configured in the allocation system. The allocation inventory
+            uses 250 rooms per campus with 3 beds per room.
+        </p>
+    </section>
+
+    <section class="panel" id="complaints">
+        <div class="section-heading">
+            <div>
+                <h2>Student Complaint Inbox</h2>
+                <p>Review room issues submitted by students and mark them resolved.</p>
+            </div>
+            <div class="complaint-summary">
+                <span class="pending">{{ pending_complaints }} pending</span>
+                <span class="complaint-total">{{ complaint_count }} total</span>
+            </div>
+        </div>
+
+        <div class="table-container">
+            <table class="complaint-table">
+                <thead>
+                    <tr>
+                        <th>Student</th>
+                        <th>USN</th>
+                        <th>Department</th>
+                        <th>Campus / Room</th>
+                        <th>Complaint</th>
+                        <th>Submitted</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for complaint in complaints %}
+                        <tr>
+                            <td>{{ complaint.name }}</td>
+                            <td>{{ complaint.usn }}</td>
+                            <td>{{ complaint.department }}</td>
+                            <td>{{ complaint.campus }}<br>{{ complaint.room_number or "No room" }}</td>
+                            <td class="complaint-body">{{ complaint.body }}</td>
+                            <td>{{ complaint.created_at }}</td>
+                            <td>
+                                {% if complaint.status == "Pending" %}
+                                    <span class="pending">Pending</span>
+                                {% else %}
+                                    <span class="allocated">Resolved</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if complaint.status == "Pending" %}
+                                    <form action="{{ url_for('resolve_complaint', complaint_id=complaint.id) }}"
+                                          method="POST">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <button class="resolve-btn" type="submit">
+                                            Mark resolved
+                                        </button>
+                                    </form>
+                                {% else %}
+                                    {{ complaint.resolved_at }}
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="8" class="empty-state">
+                                No complaints have been submitted.
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- Student list -->
+    <section class="panel" id="student-directory">
+
+        <h2>Student Directory</h2>
+
+        <div class="table-container">
+        <table>
+
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>USN</th>
+                    <th>Campus</th>
+                    <th>Department</th>
+                    <th>Year</th>
+                    <th>Room</th>
+                    <th>Room status</th>
+                    <th>Today's attendance</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+            {% for student in students %}
+
+                <tr>
+                    <td>{{ student.id }}</td>
+                    <td>{{ student.name }}</td>
+                    <td>{{ student.usn }}</td>
+                    <td>{{ student.campus }}</td>
+                    <td>{{ student.department }}</td>
+                    <td>{{ student.year }}</td>
+
+                    <td>
+                        {{ student.room_number or "Not Allocated" }}
+                    </td>
+
+                    <td>
+                        {% if student.room_id %}
+                            <span class="allocated">Allocated</span>
+                        {% else %}
+                            <span class="pending">Pending</span>
+                        {% endif %}
+                    </td>
+
+                    <td>
+                        {% if student.attendance_status == "Present" %}
+                            <span class="attendance-status-badge attendance-status-present">
+                                Present
+                            </span>
+                        {% elif student.attendance_status == "Absent" %}
+                            <span class="attendance-status-badge attendance-status-absent">
+                                Absent
+                            </span>
+                        {% elif student.attendance_status == "On Leave" %}
+                            <span class="attendance-status-badge attendance-status-leave">
+                                On Leave
+                            </span>
+                        {% else %}
+                            <span class="attendance-status-badge attendance-status-unmarked">
+                                Not marked
+                            </span>
+                        {% endif %}
+                    </td>
+
+                    <td class="actions">
+
+                        {% if not student.room_id %}
+                            <form action="/allocate/{{ student.id }}"
+                                  method="POST">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button class="allocate-btn">
+                                    Allocate
+                                </button>
+                            </form>
+                        {% else %}
+                            <form action="/vacate/{{ student.id }}"
+                                  method="POST">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button class="vacate-btn">
+                                    Vacate
+                                </button>
+                            </form>
+                        {% endif %}
+
+                        <form action="/delete/{{ student.id }}"
+                              method="POST"
+                              onsubmit="return confirm('Delete this student?')">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                            <button class="delete-btn">
+                                Delete
+                            </button>
+
+                        </form>
+
+                    </td>
+                </tr>
+
+            {% else %}
+
+                <tr>
+                    <td colspan="10">No students registered yet.</td>
+                </tr>
+
+            {% endfor %}
+
+            </tbody>
+        </table>
+        </div>
+
+    </section>
+
+    <section class="panel" id="room-availability">
+        <details class="room-disclosure"
+                 {% if room_query or room_campus_filter or room_status_filter or room_page > 1 %}open{% endif %}>
+            <summary>
+                <span>
+                    <strong>Room Availability</strong>
+                    <small>Search and browse {{ total_rooms }} rooms</small>
+                </span>
+            </summary>
+
+            <div class="room-browser">
+                <form class="room-filters" method="get" action="{{ url_for('warden_dashboard') }}">
+                    <label class="room-filter" for="room-search-input">
+                        <span>Search room</span>
+                        <input id="room-search-input"
+                               name="q"
+                               type="search"
+                               value="{{ room_query }}"
+                               placeholder="Room number, e.g. S-101">
+                    </label>
+
+                    <label class="room-filter" for="room-campus-filter">
+                        <span>Campus</span>
+                        <select id="room-campus-filter" name="campus">
+                            <option value="">All campuses</option>
+                            {% for campus in campuses %}
+                                <option value="{{ campus }}"
+                                        {% if room_campus_filter == campus %}selected{% endif %}>
+                                    {{ campus }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </label>
+
+                    <label class="room-filter" for="room-status-filter">
+                        <span>Room status</span>
+                        <select id="room-status-filter" name="status">
+                            <option value="">All rooms</option>
+                            <option value="available"
+                                    {% if room_status_filter == "available" %}selected{% endif %}>
+                                Has available beds
+                            </option>
+                            <option value="full"
+                                    {% if room_status_filter == "full" %}selected{% endif %}>
+                                Full
+                            </option>
+                        </select>
+                    </label>
+
+                    <div class="room-filter-actions">
+                        <button class="filter-btn" type="submit">Apply filters</button>
+                        <a href="{{ url_for('warden_dashboard') }}">Clear</a>
+                    </div>
+                </form>
+
+                {% if room_results_count %}
+                    <p class="room-results-summary">
+                        Showing {{ first_room_index + 1 }}-{{ first_room_index + rooms|length }}
+                        of {{ room_results_count }} matching rooms
+                    </p>
+                {% else %}
+                    <p class="no-room-results">No rooms match these filters.</p>
+                {% endif %}
+
+                <div class="room-grid" id="room-grid">
+                    {% for room in rooms %}
+                        <div class="room-card">
+                            <h3>Room {{ room.room_number }}</h3>
+                            <p class="room-campus">{{ room.campus }}</p>
+
+                            <div class="room-occupancy">
+                                <p>
+                                    Occupied
+                                    <strong>{{ room.occupied }} / {{ room.capacity }}</strong>
+                                </p>
+                                <p>
+                                    Available
+                                    <strong>{{ room.capacity - room.occupied }}</strong>
+                                </p>
+                            </div>
+
+                            <div class="room-meter" aria-hidden="true">
+                                <span
+                                    {% if room.capacity > 0 %}
+                                        style="width: {{ (room.occupied / room.capacity * 100)|round }}%"
+                                    {% else %}
+                                        style="width: 0%"
+                                    {% endif %}>
+                                </span>
+                            </div>
+
+                            {% if room.occupied >= room.capacity %}
+                                <span class="full">FULL</span>
+                            {% else %}
+                                <span class="available">AVAILABLE</span>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <nav class="room-pagination" aria-label="Room list pages">
+                    {% if room_page > 1 %}
+                        <a href="{{ url_for('warden_dashboard', q=room_query, campus=room_campus_filter, status=room_status_filter, page=room_page - 1) }}">
+                            Previous
+                        </a>
+                    {% else %}
+                        <span class="page-disabled" aria-disabled="true">Previous</span>
+                    {% endif %}
+                    <p>Page {{ room_page }} of {{ room_page_count }}</p>
+                    {% if room_page < room_page_count %}
+                        <a href="{{ url_for('warden_dashboard', q=room_query, campus=room_campus_filter, status=room_status_filter, page=room_page + 1) }}">
+                            Next
+                        </a>
+                    {% else %}
+                        <span class="page-disabled" aria-disabled="true">Next</span>
+                    {% endif %}
+                </nav>
+            </div>
+        </details>
+    </section>
+
+</div>
+
+<footer>
+    <p>NIE Mysuru · Girls' Hostel Management</p>
+</footer>
+
+<script src="{{ url_for('static', filename='script.js') }}"></script>
+
+</body>
+</html>
