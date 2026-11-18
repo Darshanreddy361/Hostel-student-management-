@@ -28,6 +28,10 @@
 </header>
 
 <main class="auth-container">
+    <div class="setup-notice public-demo-notice" role="note">
+        Public project demo only—not an official NIE service. Do not enter real student
+        or warden credentials or passwords.
+    </div>
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% for category, message in messages %}
             <div class="message {{ category }}">{{ message }}</div>

@@ -713,6 +713,10 @@ header p:last-child {
     font-size: 13px;
 }
 
+.public-demo-notice {
+    margin-bottom: 20px;
+}
+
 .auth-footer {
     margin: 20px 0 0;
     color: var(--muted);

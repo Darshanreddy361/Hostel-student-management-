@@ -22,6 +22,11 @@
 </header>
 
 <main class="container">
+    <div class="setup-notice public-demo-notice" role="note">
+        Public project demo only—not an official NIE service. Use fictional details and a
+        unique throwaway password; do not enter real student information or passwords.
+        Demo data may be cleared.
+    </div>
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% for category, message in messages %}
             <div class="message {{ category }}">{{ message }}</div>
