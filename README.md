@@ -31,9 +31,14 @@ address directly in the browser's address bar; it works in Safari, Chrome,
 Firefox, and Edge on the same computer. The Docker container in this workspace
 is published at `http://localhost:5001`.
 
-`localhost` always refers to the computer running the browser. To open the
-portal from another device, use the deployed Render URL or the server
-computer's network address instead.
+`localhost` always refers to the device running the browser. For another
+device on the same private Wi-Fi or LAN, open
+`http://<HOST-COMPUTER-IP>:5001` for the Docker container in this workspace,
+or use the host-computer IP with the port configured for your run. On macOS,
+find the host IP in **System Settings → Wi-Fi → Details → IP address**. Both
+devices must be on the same network, and the host firewall must allow that
+port. Do not expose the development server directly to the public internet;
+use the Render deployment for remote access.
 
 In another terminal, create a warden account when running locally:
 
@@ -147,8 +152,9 @@ docker run -d --name nie-hostel-portal \
 ```
 
 With this command, open `http://localhost:5000` in any modern browser on the
-same computer. If you publish the container on a different host port, use that
-port in the browser address.
+same computer. On another device on the same private network, use
+`http://<HOST-COMPUTER-IP>:5000`. If you publish the container on a different
+host port, use that port in the browser address.
 
 Create a warden account interactively inside the running container:
 
