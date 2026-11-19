@@ -6,7 +6,7 @@
     <title>Student Portal | NIE Girls' Hostel</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
-<body>
+<body class="student-dashboard-page">
 <header>
     <div class="header-inner">
         <div class="header-copy">
@@ -25,6 +25,7 @@
             </p>
         </div>
         <div class="header-actions">
+            <a class="header-link" href="#hostel-fees">Hostel fee payment</a>
             <a class="header-link" href="#new-complaint">Report an issue</a>
             <a class="header-link" href="#my-complaints">My complaints</a>
             <div class="account-menu">
@@ -38,6 +39,17 @@
     </div>
 </header>
 
+<nav class="student-workspace-nav" aria-label="Student portal sections">
+    <a href="#student-overview"><span class="student-nav-icon student-nav-overview" aria-hidden="true">⌂</span>Overview</a>
+    <a href="#student-notices"><span class="student-nav-icon student-nav-notices" aria-hidden="true">▤</span>Notices</a>
+    <a href="#meals"><span class="student-nav-icon student-nav-meals" aria-hidden="true">◉</span>Meals</a>
+    <a href="#hostel-fees"><span class="student-nav-icon student-nav-fees" aria-hidden="true">₹</span>Fee payments</a>
+    <a href="#visitors"><span class="student-nav-icon student-nav-visitors" aria-hidden="true">♧</span>Visitors</a>
+    <a href="#outpasses"><span class="student-nav-icon student-nav-outpasses" aria-hidden="true">↗</span>Outpass</a>
+    <a href="#maintenance"><span class="student-nav-icon student-nav-maintenance" aria-hidden="true">⚒</span>Maintenance</a>
+    <a href="#my-profile"><span class="student-nav-icon student-nav-profile" aria-hidden="true">♙</span>My profile</a>
+</nav>
+
 <main class="container">
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% for category, message in messages %}
@@ -45,8 +57,387 @@
         {% endfor %}
     {% endwith %}
 
-    <section class="panel" id="new-complaint">
-        <h2>Report a room issue</h2>
+    <section class="student-overview" id="student-overview">
+        <article class="student-overview-card student-overview-assignment">
+            <span class="student-overview-icon" aria-hidden="true">⌂</span>
+            <div><small>My assignment</small><strong>{{ student.room_number or "Awaiting allocation" }}</strong><span>{% if student.room_number %}{{ student.building_name }} · {{ student.floor_name }} · {{ student.bed_label }}{% else %}Your warden will assign a bed{% endif %}</span></div>
+        </article>
+        <article class="student-overview-card">
+            <span class="student-overview-icon student-overview-green" aria-hidden="true">✓</span>
+            <div><small>Today's attendance</small><strong>{{ today_attendance or "Not marked" }}</strong><span>Updated by the hostel warden</span></div>
+        </article>
+        <article class="student-overview-card">
+            <span class="student-overview-icon student-overview-amber" aria-hidden="true">₹</span>
+            <div><small>Fee receipts</small><strong>{{ fee_summary.pending or 0 }} pending</strong><span>{{ fee_summary.approved or 0 }} approved · {{ fee_summary.rejected or 0 }} need attention</span></div>
+        </article>
+        <article class="student-overview-card">
+            <span class="student-overview-icon student-overview-violet" aria-hidden="true">⚒</span>
+            <div><small>My service requests</small><strong>{{ student_tickets|length + complaints|length }}</strong><span>Maintenance tickets and room issues</span></div>
+        </article>
+    </section>
+
+    <section class="panel student-notices-panel student-panel student-panel-notices" id="student-notices">
+        <div class="section-heading">
+            <span class="student-section-icon student-icon-notices" aria-hidden="true">▤</span>
+            <div><p class="operations-kicker">HOSTEL UPDATES</p><h2>Notices for students</h2><p>Important information shared by the warden.</p></div>
+            <span class="complaint-total">{{ notices|length }} updates</span>
+        </div>
+        <div class="student-notice-grid">
+            {% for notice in notices %}
+                <article class="student-notice-card">
+                    <span class="student-notice-date">{{ notice.created_at }}</span>
+                    <h3>{{ notice.title }}</h3>
+                    <p>{{ notice.body }}</p>
+                </article>
+            {% else %}
+                <p class="empty-state">There are no active notices right now.</p>
+            {% endfor %}
+        </div>
+        <div class="student-rules-heading">
+            <div><h3>Hostel rules &amp; resident guide</h3><p>Current guidance published by your warden.</p></div>
+            <span>{{ hostel_rules|length }} active</span>
+        </div>
+        <div class="student-notice-grid">
+            {% for rule in hostel_rules %}
+                <article class="student-rule-card">
+                    <span class="student-notice-date">{{ rule.category }}</span>
+                    <h3>{{ rule.title }}</h3>
+                    <p>{{ rule.body }}</p>
+                </article>
+            {% else %}
+                <p class="empty-state">Your warden has not added rules yet.</p>
+            {% endfor %}
+        </div>
+    </section>
+
+    <section class="panel student-meals-panel student-panel student-panel-meals" id="meals">
+        <div class="section-heading">
+            <span class="student-section-icon student-icon-meals" aria-hidden="true">◉</span>
+            <div><p class="operations-kicker">MESS &amp; MEALS</p><h2>Today's mess menu</h2><p>Today's published menu for {{ student.campus }}.</p></div>
+            <span class="complaint-total">{{ student.campus }}</span>
+        </div>
+        <div class="student-meal-grid">
+            {% if today_meals %}
+                {% for meal_type in meal_types %}
+                    {% set meal = today_meals.get(meal_type) %}
+                    {% if meal %}
+                        <article class="student-meal-card">
+                            <div class="student-meal-heading"><span>{{ meal_type }}</span><strong>{{ today }}</strong></div>
+                            <p>{{ meal.menu_text }}</p>
+                            <div class="student-meal-footer">
+                                <small>{{ meal.reservation_count }} reserved</small>
+                                <form method="POST" action="{{ url_for('update_meal_reservation', menu_id=meal.id) }}">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    {% if meal.my_reservation == "Reserved" %}
+                                        <button class="student-action-secondary" name="action" value="cancel" type="submit">Cancel reservation</button>
+                                    {% else %}
+                                        <button class="student-action-primary" name="action" value="reserve" type="submit">Reserve meal</button>
+                                    {% endif %}
+                                </form>
+                            </div>
+                        </article>
+                    {% endif %}
+                {% endfor %}
+            {% else %}
+                <p class="empty-state">Today's mess menu has not been published yet.</p>
+            {% endif %}
+        </div>
+        <div class="student-rules-heading">
+            <div><h3>Upcoming menus</h3><p>Future meal menus published for your hostel.</p></div>
+        </div>
+        <div class="student-meal-grid">
+            {% for meal in meal_menus %}
+                <article class="student-meal-card">
+                    <div class="student-meal-heading"><span>{{ meal.meal_type }}</span><strong>{{ meal.meal_date }}</strong></div>
+                    <p>{{ meal.menu_text }}</p>
+                    <div class="student-meal-footer">
+                        <small>{{ meal.reservation_count }} reserved</small>
+                        <form method="POST" action="{{ url_for('update_meal_reservation', menu_id=meal.id) }}">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            {% if meal.my_reservation == "Reserved" %}
+                                <button class="student-action-secondary" name="action" value="cancel" type="submit">Cancel reservation</button>
+                            {% else %}
+                                <button class="student-action-primary" name="action" value="reserve" type="submit">Reserve meal</button>
+                            {% endif %}
+                        </form>
+                    </div>
+                </article>
+            {% else %}
+                <p class="empty-state">The warden has not published upcoming menus yet.</p>
+            {% endfor %}
+        </div>
+    </section>
+
+    <section class="panel fee-panel student-panel student-panel-fees" id="hostel-fees">
+        <div class="section-heading">
+            <span class="student-section-icon student-icon-fees" aria-hidden="true">₹</span>
+            <div>
+                <h2>Hostel Fee Payment</h2>
+                <p>Upload payment details and a receipt for warden verification.</p>
+            </div>
+            <span class="fee-student-identity">{{ student.name }} · {{ student.usn }}</span>
+        </div>
+
+        <section class="dashboard fee-summary" aria-label="Fee receipt summary">
+            <article class="card fee-card-pending">
+                <h3>Pending</h3>
+                <h2>{{ fee_summary.pending or 0 }}</h2>
+                <small>Awaiting warden review</small>
+            </article>
+            <article class="card fee-card-approved">
+                <h3>Approved</h3>
+                <h2>{{ fee_summary.approved or 0 }}</h2>
+                <small>₹{{ "%.2f"|format(fee_summary.approved_total) }} verified</small>
+            </article>
+            <article class="card fee-card-rejected">
+                <h3>Rejected</h3>
+                <h2>{{ fee_summary.rejected or 0 }}</h2>
+                <small>Correction may be uploaded</small>
+            </article>
+            <article class="card fee-card-total">
+                <h3>Total submissions</h3>
+                <h2>{{ fee_summary.receipt_count or 0 }}</h2>
+                <small>Payment receipt history</small>
+            </article>
+        </section>
+
+        <div class="fee-upload-layout">
+            <form class="fee-upload-form"
+                  action="{{ url_for('submit_fee_receipt') }}"
+                  method="POST"
+                  enctype="multipart/form-data"
+                  data-fee-upload-form>
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="correction_of_id" value="" data-correction-id>
+                <div class="fee-form-heading">
+                    <div>
+                        <h3>Submit a payment receipt</h3>
+                        <p>Student details are taken from your signed-in account.</p>
+                    </div>
+                    <span class="fee-correction-label" data-correction-label hidden></span>
+                </div>
+                <div class="complaint-student-details fee-student-details">
+                    <div><span>Student</span><strong>{{ student.name }}</strong></div>
+                    <div><span>USN</span><strong>{{ student.usn }}</strong></div>
+                    <div><span>Campus</span><strong>{{ student.campus }}</strong></div>
+                </div>
+                <div class="form-grid">
+                    <div class="form-field">
+                        <label for="fee-amount">Payment amount (₹)</label>
+                        <input id="fee-amount" name="amount" type="number"
+                               min="0.01" step="0.01" inputmode="decimal" required>
+                    </div>
+                    <div class="form-field">
+                        <label for="fee-payment-date">Payment date</label>
+                        <input id="fee-payment-date" name="payment_date"
+                               type="date" required>
+                    </div>
+                    <div class="form-field">
+                        <label for="fee-transaction-id">Transaction ID / UTR</label>
+                        <input id="fee-transaction-id" name="transaction_id"
+                               type="text" maxlength="128" required>
+                    </div>
+                    <div class="form-field">
+                        <label for="fee-academic-year">Academic year</label>
+                        <input id="fee-academic-year" name="academic_year"
+                               type="text" inputmode="numeric"
+                               pattern="[0-9]{4}-([0-9]{2}|[0-9]{4})"
+                               placeholder="2026-2027" maxlength="9" required>
+                    </div>
+                </div>
+                <div class="form-field fee-file-field">
+                    <label for="fee-receipt-file">Receipt file</label>
+                    <input id="fee-receipt-file" name="receipt_file" type="file"
+                           accept=".jpg,.jpeg,.png,.pdf,image/jpeg,image/png,application/pdf"
+                           data-fee-file required>
+                    <p class="field-hint">JPG, JPEG, PNG, or PDF · maximum 5 MB.</p>
+                </div>
+                <div class="fee-preview" data-fee-preview hidden>
+                    <strong>Receipt preview</strong>
+                    <img alt="Selected fee receipt preview" data-fee-preview-image hidden>
+                    <iframe title="Selected PDF receipt preview"
+                            data-fee-preview-pdf hidden></iframe>
+                </div>
+                <div class="fee-form-actions">
+                    <button class="add-btn" type="submit">Upload for verification</button>
+                    <button class="fee-cancel-correction" type="button"
+                            data-cancel-correction hidden>Cancel correction</button>
+                </div>
+            </form>
+
+            <aside class="fee-upload-note">
+                <span class="fee-note-icon" aria-hidden="true">✓</span>
+                <h3>Secure verification</h3>
+                <p>Uploaded receipts are private to you and authorized wardens. A payment remains pending until a warden approves it.</p>
+                <ul>
+                    <li>Accepted: JPG, JPEG, PNG, PDF</li>
+                    <li>Maximum file size: 5 MB</li>
+                    <li>Approved receipts cannot be changed</li>
+                </ul>
+            </aside>
+        </div>
+    </section>
+
+    <section class="panel fee-history-panel student-panel student-panel-history" id="fee-history">
+        <div class="section-heading">
+            <span class="student-section-icon student-icon-history" aria-hidden="true">↻</span>
+            <div>
+                <h2>Payment History</h2>
+                <p>Review verification status and any action needed.</p>
+            </div>
+            <span class="complaint-total">{{ fee_receipts|length }} receipts</span>
+        </div>
+
+        <div class="fee-history-list">
+            {% for receipt in fee_receipts %}
+                <article class="fee-history-card">
+                    <div class="fee-history-main">
+                        <div>
+                            <span class="fee-status fee-status-{{ receipt.status|lower }}">
+                                {{ receipt.status }}
+                            </span>
+                            <h3>₹{{ "%.2f"|format(receipt.amount) }} · {{ receipt.academic_year }}</h3>
+                            <p>Paid {{ receipt.payment_date }} · Transaction {{ receipt.transaction_id }}</p>
+                            <small>Uploaded {{ receipt.uploaded_at }}</small>
+                        </div>
+                        <a class="fee-receipt-link"
+                           href="{{ url_for('fee_receipt_file', receipt_id=receipt.id) }}"
+                           target="_blank" rel="noopener">View receipt</a>
+                    </div>
+                    {% if receipt.status == "Rejected" %}
+                        <div class="fee-rejection-reason">
+                            <strong>Reason for rejection</strong>
+                            <p>{{ receipt.rejection_reason }}</p>
+                        </div>
+                        <button class="fee-correction-button" type="button"
+                                data-fee-correction="{{ receipt.id }}"
+                                data-amount="{{ receipt.amount }}"
+                                data-payment-date="{{ receipt.payment_date }}"
+                                data-transaction-id="{{ receipt.transaction_id }}"
+                                data-academic-year="{{ receipt.academic_year }}">
+                            Upload corrected receipt
+                        </button>
+                    {% elif receipt.status == "Approved" %}
+                        <p class="fee-verification-meta">
+                            Verified {{ receipt.verified_at }}
+                        </p>
+                    {% endif %}
+                    {% if receipt.resubmission_of %}
+                        <small class="fee-correction-meta">
+                            Corrected submission for receipt #{{ receipt.resubmission_of }}
+                        </small>
+                    {% endif %}
+                </article>
+            {% else %}
+                <p class="empty-state">No fee receipts uploaded yet.</p>
+            {% endfor %}
+        </div>
+    </section>
+
+    <section class="panel student-service-panel student-panel student-panel-visitors" id="visitors">
+        <div class="section-heading">
+            <span class="student-section-icon student-icon-visitors" aria-hidden="true">♧</span>
+            <div><p class="operations-kicker">VISITOR MANAGEMENT</p><h2>Request a visitor appointment</h2><p>Submit a request for warden approval. Approval is in-app; no SMS or OTP is sent.</p></div>
+            <span class="complaint-total">{{ visitor_requests|length }} requests</span>
+        </div>
+        <div class="student-service-layout">
+            <form class="operations-form" method="POST" action="{{ url_for('submit_visitor_request') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <label>Visitor full name<input name="visitor_name" maxlength="100" required></label>
+                <div class="operations-form-row"><label>Relationship<input name="relationship" maxlength="60" required placeholder="Parent, sibling, guardian"></label><label>Phone<input name="visitor_phone" type="tel" maxlength="24" required></label></div>
+                <div class="operations-form-row"><label>Visit date<input name="visit_date" type="date" min="{{ today }}" required></label><label>Visit time<input name="visit_time" type="time" required></label></div>
+                <label>Purpose<textarea name="purpose" rows="3" maxlength="500" required></textarea></label>
+                <button class="student-action-primary" type="submit">Submit visitor request</button>
+            </form>
+            <div class="student-service-history">
+                {% for item in visitor_requests %}
+                    <article class="student-history-card">
+                        <div><strong>{{ item.visitor_name }}</strong><span class="operations-status status-{{ item.status|lower }}">{{ item.status }}</span></div>
+                        <p>{{ item.visit_date }} · {{ item.visit_time }} · {{ item.relationship }}</p>
+                        <small>{{ item.purpose }}{% if item.decision_note %} · {{ item.decision_note }}{% endif %}</small>
+                    </article>
+                {% else %}<p class="empty-state">Visitor requests you submit will appear here.</p>{% endfor %}
+            </div>
+        </div>
+    </section>
+
+    <section class="panel student-service-panel student-panel student-panel-outpasses" id="outpasses">
+        <div class="section-heading">
+            <span class="student-section-icon student-icon-outpasses" aria-hidden="true">↗</span>
+            <div><p class="operations-kicker">LEAVE &amp; GATE PASS</p><h2>Request an outpass</h2><p>Share your destination and expected return time for review.</p></div>
+            <span class="complaint-total">{{ outpasses|length }} requests</span>
+        </div>
+        <div class="student-service-layout">
+            <form class="operations-form" method="POST" action="{{ url_for('submit_outpass_request') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <label>Destination<input name="destination" maxlength="120" required></label>
+                <label>Reason<textarea name="reason" rows="3" maxlength="500" required></textarea></label>
+                <div class="operations-form-row"><label>Departure<input name="departure_at" type="datetime-local" required></label><label>Expected return<input name="expected_return_at" type="datetime-local" required></label></div>
+                <button class="student-action-primary" type="submit">Request outpass</button>
+            </form>
+            <div class="student-service-history">
+                {% for item in outpasses %}
+                    <article class="student-history-card">
+                        <div><strong>{{ item.destination }}</strong><span class="operations-status status-{{ item.status|lower|replace(' ', '-') }}">{{ item.status }}</span></div>
+                        <p>Out {{ item.departure_at }} · Return {{ item.expected_return_at }}</p>
+                        <small>{{ item.reason }}{% if item.checked_out_at %} · Exit recorded {{ item.checked_out_at }}{% endif %}{% if item.checked_in_at %} · Return recorded {{ item.checked_in_at }}{% endif %}{% if item.decision_note %} · {{ item.decision_note }}{% endif %}</small>
+                    </article>
+                {% else %}<p class="empty-state">Your outpass requests and decisions will appear here.</p>{% endfor %}
+            </div>
+        </div>
+    </section>
+
+    <section class="panel student-service-panel student-panel student-panel-maintenance" id="maintenance">
+        <div class="section-heading">
+            <span class="student-section-icon student-icon-maintenance" aria-hidden="true">⚒</span>
+            <div><p class="operations-kicker">CAMPUS SUPPORT</p><h2>Facilities &amp; maintenance</h2><p>Report an issue with a room or shared facility and track its progress.</p></div>
+            <span class="complaint-total">{{ student_tickets|length }} tickets</span>
+        </div>
+        <div class="student-service-layout">
+            <form class="operations-form" method="POST" action="{{ url_for('submit_maintenance_ticket') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <label>Facility<select name="facility_id"><option value="">Room or general issue</option>{% for facility in facilities %}<option value="{{ facility.id }}">{{ facility.name }} · {{ facility.location }}</option>{% endfor %}</select></label>
+                <div class="operations-form-row"><label>Issue title<input name="subject" maxlength="120" required></label><label>Priority<select name="priority">{% for priority in ticket_priorities %}<option value="{{ priority }}">{{ priority }}</option>{% endfor %}</select></label></div>
+                <label>Describe the issue<textarea name="description" rows="4" maxlength="2000" required></textarea></label>
+                <button class="student-action-primary" type="submit">Submit maintenance ticket</button>
+            </form>
+            <div class="student-service-history">
+                {% for ticket in student_tickets %}
+                    <article class="student-history-card">
+                        <div><strong>{{ ticket.subject }}</strong><span class="operations-status status-{{ ticket.status|lower|replace(' ', '-') }}">{{ ticket.status }}</span></div>
+                        <p>{{ ticket.facility_name or "Room or general issue" }} · {{ ticket.priority }}</p>
+                        <small>{{ ticket.description }}{% if ticket.resolution_note %} · Update: {{ ticket.resolution_note }}{% endif %}</small>
+                    </article>
+                {% else %}<p class="empty-state">Submitted maintenance tickets will appear here.</p>{% endfor %}
+            </div>
+        </div>
+    </section>
+
+    <section class="panel student-profile-panel student-panel student-panel-profile" id="my-profile">
+        <div class="section-heading">
+            <span class="student-section-icon student-icon-profile" aria-hidden="true">♙</span>
+            <div><p class="operations-kicker">ACCOUNT &amp; SAFETY</p><h2>My profile &amp; emergency contacts</h2><p>Keep your home address and emergency contacts current for urgent hostel coordination.</p></div>
+        </div>
+        <div class="student-profile-layout">
+            <dl class="student-profile-facts">
+                <div><dt>Student</dt><dd>{{ student.name }}</dd></div>
+                <div><dt>USN</dt><dd>{{ student.usn }}</dd></div>
+                <div><dt>Department / year</dt><dd>{{ student.department }} · {{ student.year }}</dd></div>
+                <div><dt>Campus</dt><dd>{{ student.campus }}</dd></div>
+            </dl>
+            <form class="operations-form" method="POST" action="{{ url_for('update_student_profile') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <label>Parent or guardian name<input name="guardian_name" maxlength="100" value="{{ student.guardian_name or '' }}" required></label>
+                <div class="operations-form-row"><label>Guardian phone<input name="guardian_phone" type="tel" maxlength="24" value="{{ student.guardian_phone or '' }}" required></label><label>Alternate emergency phone<input name="emergency_phone" type="tel" maxlength="24" value="{{ student.emergency_phone or '' }}" required></label></div>
+                <label>Permanent home address for emergencies<textarea name="home_address" rows="3" maxlength="500" autocomplete="street-address" placeholder="Street, area, town or city, state, and postal code" required>{{ student.home_address or '' }}</textarea></label>
+                <p class="field-hint">Only authorized wardens can view this address. It is intended for hostel emergency response.</p>
+                <button class="student-action-primary" type="submit">Save contact details</button>
+            </form>
+        </div>
+    </section>
+
+    <section class="panel student-panel student-panel-complaint" id="new-complaint">
+        <h2 class="student-panel-title"><span class="student-section-icon student-icon-maintenance" aria-hidden="true">⚒</span>Report a room issue</h2>
         <p class="section-description">
             Your account details are attached automatically. Describe the issue
             clearly so the warden can follow up.
@@ -57,8 +448,16 @@
             <div><span>USN</span><strong>{{ student.usn }}</strong></div>
             <div><span>Department</span><strong>{{ student.department }}</strong></div>
             <div>
-                <span>Campus / Room</span>
-                <strong>{{ student.campus }} · {{ student.room_number or "Awaiting allocation" }}</strong>
+                <span>Hostel assignment</span>
+                <strong>
+                    {% if student.room_number %}
+                        {{ student.campus }} · {{ student.building_name }} ·
+                        {{ student.floor_name }} · Room {{ student.room_number }} ·
+                        {{ student.bed_label or "Bed unassigned" }}
+                    {% else %}
+                        {{ student.campus }} · Awaiting allocation
+                    {% endif %}
+                </strong>
             </div>
         </div>
 
@@ -76,8 +475,9 @@
         </form>
     </section>
 
-    <section class="panel" id="my-complaints">
+    <section class="panel student-panel student-panel-my-complaints" id="my-complaints">
         <div class="section-heading">
+            <span class="student-section-icon student-icon-history" aria-hidden="true">↻</span>
             <div>
                 <h2>My complaints</h2>
                 <p>Track progress and resolution status.</p>

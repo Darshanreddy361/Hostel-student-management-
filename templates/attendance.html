@@ -35,8 +35,8 @@
 
 <nav class="workspace-nav" aria-label="Warden workspace">
     <div class="workspace-nav-inner">
-        <a href="{{ url_for('warden_dashboard') }}">Dashboard</a>
-        <a href="#attendance-register">Attendance register</a>
+        <a href="{{ url_for('warden_dashboard') }}"><span class="workspace-nav-icon nav-icon-blue" aria-hidden="true">⌂</span>Dashboard</a>
+        <a href="#attendance-register"><span class="workspace-nav-icon nav-icon-green" aria-hidden="true">▣</span>Attendance register</a>
     </div>
 </nav>
 
@@ -49,6 +49,7 @@
 
     <section class="panel attendance-filter-panel" aria-labelledby="attendance-filter-title">
         <div class="section-heading">
+            <span class="warden-title-icon nav-icon-blue" aria-hidden="true">◷</span>
             <div>
                 <h2 id="attendance-filter-title">Select date and campus</h2>
                 <p>Review a past register or take attendance for today.</p>
@@ -87,26 +88,27 @@
     </section>
 
     <section class="dashboard attendance-summary" aria-label="Attendance summary">
-        <article class="card">
-            <h3>Present</h3>
+        <article class="card attendance-card-present">
+            <h3><span class="attendance-status-icon" aria-hidden="true">✓</span>Present</h3>
             <h2>{{ status_counts["Present"] }}</h2>
         </article>
         <article class="card attendance-card-absent">
-            <h3>Absent</h3>
+            <h3><span class="attendance-status-icon" aria-hidden="true">×</span>Absent</h3>
             <h2>{{ status_counts["Absent"] }}</h2>
         </article>
         <article class="card attendance-card-leave">
-            <h3>On leave</h3>
+            <h3><span class="attendance-status-icon" aria-hidden="true">↗</span>On leave</h3>
             <h2>{{ status_counts["On Leave"] }}</h2>
         </article>
         <article class="card attendance-card-unmarked">
-            <h3>Not yet marked</h3>
+            <h3><span class="attendance-status-icon" aria-hidden="true">○</span>Not yet marked</h3>
             <h2>{{ unmarked_count }}</h2>
         </article>
     </section>
 
     <section class="panel attendance-register-panel" id="attendance-register">
         <div class="section-heading attendance-register-heading">
+            <span class="warden-title-icon nav-icon-green" aria-hidden="true">▣</span>
             <div>
                 <h2>Daily register</h2>
                 <p>{{ attendance_date_label }} · {{ students|length }} students</p>

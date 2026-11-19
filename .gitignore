@@ -12,6 +12,7 @@ __pycache__/
 hostel.db
 *.sqlite
 *.sqlite3
+receipts/
 
 # Environment variables
 .env

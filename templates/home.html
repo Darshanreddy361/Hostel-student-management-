@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description"
-          content="A connected hostel portal for student registration, room allocation, and complaint tracking at NIE Mysuru.">
+          content="A student and warden portal for hostel beds, attendance, fees, daily mess menus, student services, and campus operations at NIE Mysuru.">
     <title>NIE Girls' Hostel Portal | Mysuru</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
@@ -46,70 +46,44 @@
         <div class="landing-shell landing-hero-grid">
             <div class="landing-hero-copy">
                 <p class="landing-eyebrow">STUDENT LIFE · HOSTEL OPERATIONS</p>
-                <h1>Hostel management,<br><span>all in one place.</span></h1>
+                <h1>One hostel day.<br><span>Clearer for everyone.</span></h1>
                 <p class="landing-hero-description">
-                    One connected portal for student accounts, room allocation,
-                    availability tracking, and complaints—from first sign-in to resolution.
+                    A connected workspace for students and wardens—from room and bed
+                    allocation to daily meals, fee receipt review, gate requests, and
+                    maintenance follow-through.
                 </p>
                 <div class="landing-hero-actions">
                     <a class="landing-primary-action" href="{{ url_for('register_student') }}">
                         Create a student account
                     </a>
                     <a class="landing-secondary-action" href="#platform">
-                        Explore the platform <span aria-hidden="true">↓</span>
+                        See what is included <span aria-hidden="true">↓</span>
                     </a>
                 </div>
                 <div class="landing-role-note">
-                    <span><strong>Students</strong> register and follow their complaints</span>
-                    <span><strong>Wardens</strong> manage rooms and resolve issues</span>
+                    <span><strong>Students</strong> see services and follow requests</span>
+                    <span><strong>Wardens</strong> manage beds, menus, and decisions</span>
                 </div>
             </div>
 
-            <aside class="landing-workflow-card" aria-label="Hostel portal workflow preview">
-                <div class="landing-card-topline">
-                    <span class="landing-live-mark" aria-hidden="true"></span>
-                    <span>THE HOSTEL OPERATIONS LOOP</span>
-                    <span class="landing-card-label">ONE PORTAL</span>
+            <aside class="landing-workflow-card landing-menu-preview" aria-label="Illustrative student dashboard preview">
+                <div class="landing-preview-topbar">
+                    <span class="landing-preview-brand-mark" aria-hidden="true">H</span>
+                    <span class="landing-preview-brand"><strong>HOSTELOS</strong><small>STUDENT DASHBOARD</small></span>
+                    <span class="landing-preview-label">SAMPLE PREVIEW</span>
                 </div>
-                <h2>From registration to resolution</h2>
-                <p class="landing-card-intro">
-                    Each role gets a clear workspace and the next step stays visible.
-                </p>
-
-                <div class="landing-flow">
-                    <article class="landing-flow-step">
-                        <span class="landing-flow-number">01</span>
-                        <div>
-                            <strong>Student account</strong>
-                            <small>Campus-based registration and sign-in</small>
-                        </div>
-                        <span class="landing-flow-role">STUDENT</span>
-                    </article>
-                    <div class="landing-flow-connector" aria-hidden="true"></div>
-                    <article class="landing-flow-step">
-                        <span class="landing-flow-number">02</span>
-                        <div>
-                            <strong>Room allocation</strong>
-                            <small>Warden assigns and tracks available beds</small>
-                        </div>
-                        <span class="landing-flow-role">WARDEN</span>
-                    </article>
-                    <div class="landing-flow-connector" aria-hidden="true"></div>
-                    <article class="landing-flow-step">
-                        <span class="landing-flow-number">03</span>
-                        <div>
-                            <strong>Issue resolution</strong>
-                            <small>Submit, review, and mark complaints resolved</small>
-                        </div>
-                        <span class="landing-flow-role">SHARED</span>
-                    </article>
+                <div class="landing-preview-heading">
+                    <div><p>MESS MENU · SOUTH CAMPUS</p><h2>Today's menu</h2></div>
+                    <time datetime="{{ today }}">{{ today }}</time>
                 </div>
-
-                <div class="landing-card-footer">
-                    <span>Clear ownership</span>
-                    <span>Visible status</span>
-                    <span>Connected workflow</span>
+                <div class="landing-preview-meals">
+                    <article><span class="landing-preview-meal-icon">B</span><div><strong>Breakfast</strong><small>Idli · sambar · fruit</small></div><time>7:30 AM</time></article>
+                    <article><span class="landing-preview-meal-icon">L</span><div><strong>Lunch</strong><small>Rice · dal · seasonal vegetables</small></div><time>1:00 PM</time></article>
+                    <article><span class="landing-preview-meal-icon">S</span><div><strong>Snacks</strong><small>Tea · sundal</small></div><time>4:30 PM</time></article>
+                    <article><span class="landing-preview-meal-icon">D</span><div><strong>Dinner</strong><small>Chapati · paneer curry</small></div><time>8:00 PM</time></article>
                 </div>
+                <div class="landing-preview-footer"><span>4 daily meal slots</span><span>Campus-aware view</span></div>
+                <p class="landing-preview-disclaimer">Illustrative sample content—not a live hostel menu.</p>
             </aside>
         </div>
     </section>
@@ -150,28 +124,59 @@
                 </p>
             </article>
             <article class="landing-feature-card">
-                <span class="landing-feature-index">02 / ALLOCATION</span>
-                <h3>Room-by-room visibility</h3>
-                <p>
-                    Wardens can search rooms, filter by campus or availability,
-                    and see occupied and open spaces before managing allocations.
-                </p>
+                <span class="landing-feature-index">02 / BEDS &amp; ROOMS</span>
+                <h3>Bed-aware allocation</h3>
+                <p>Organize building, floor, room, and bed inventory; track occupancy and block beds that are unavailable.</p>
             </article>
             <article class="landing-feature-card">
-                <span class="landing-feature-index">03 / COMPLAINTS</span>
-                <h3>A trackable issue lifecycle</h3>
-                <p>
-                    Students submit room issues and follow status. Wardens review
-                    the inbox and mark work resolved.
-                </p>
+                <span class="landing-feature-index">03 / DAILY OPERATIONS</span>
+                <h3>Attendance and complaints</h3>
+                <p>Mark daily attendance, review student issues, and keep resolution status visible to both roles.</p>
             </article>
             <article class="landing-feature-card">
-                <span class="landing-feature-index">04 / ACCESS</span>
-                <h3>Separate student and warden views</h3>
-                <p>
-                    Students see their own account and complaints; wardens get
-                    management tools for students, rooms, and the complaint inbox.
-                </p>
+                <span class="landing-feature-index">04 / FEE VERIFICATION</span>
+                <h3>Private receipt review</h3>
+                <p>Students upload receipts; wardens approve or reject with a recorded reason and verification history.</p>
+            </article>
+            <article class="landing-feature-card">
+                <span class="landing-feature-index">05 / MESS &amp; MEALS</span>
+                <h3>A menu for every meal</h3>
+                <p>Publish breakfast, lunch, snacks, and dinner by campus and date; students see their hostel's daily menu.</p>
+            </article>
+            <article class="landing-feature-card">
+                <span class="landing-feature-index">06 / GATE WORKFLOW</span>
+                <h3>Visitors and outpasses</h3>
+                <p>Submit requests, record warden decisions, and log approved outpass exit and return events.</p>
+            </article>
+            <article class="landing-feature-card">
+                <span class="landing-feature-index">07 / CAMPUS CARE</span>
+                <h3>Facilities and work orders</h3>
+                <p>Report facility issues, set priority, assign campus staff, and document completed work.</p>
+            </article>
+            <article class="landing-feature-card">
+                <span class="landing-feature-index">08 / STAFF &amp; COMMS</span>
+                <h3>People, shifts, and notices</h3>
+                <p>Maintain staff records, day/evening/night duty rosters, student notices, and hostel rules.</p>
+            </article>
+            <article class="landing-feature-card">
+                <span class="landing-feature-index">09 / OPERATIONS</span>
+                <h3>Vendors and finance records</h3>
+                <p>Keep categorized income, expense, vendor, invoice, and due/paid records in the warden workspace.</p>
+            </article>
+            <article class="landing-feature-card">
+                <span class="landing-feature-index">10 / REPORTING</span>
+                <h3>Exportable registers</h3>
+                <p>Download warden-only CSV reports for student, attendance, fee, gate, maintenance, and finance workflows.</p>
+            </article>
+            <article class="landing-feature-card">
+                <span class="landing-feature-index">11 / STUDENT SELF-SERVICE</span>
+                <h3>One personal dashboard</h3>
+                <p>Follow your room, meals, receipts, visitors, leave requests, maintenance tickets, notices, and contacts.</p>
+            </article>
+            <article class="landing-feature-card">
+                <span class="landing-feature-index">12 / ACCESS &amp; PRIVACY</span>
+                <h3>Role-scoped workspaces</h3>
+                <p>Students access their own submissions while wardens manage authorized operations across both campuses.</p>
             </article>
         </div>
     </section>
@@ -223,18 +228,18 @@
                 <p class="landing-workflow-label">FOR STUDENTS</p>
                 <h3>Know what happens next.</h3>
                 <ol>
-                    <li><span>1</span><div><strong>Create your account</strong><small>Choose the correct campus and sign in with your USN.</small></div></li>
-                    <li><span>2</span><div><strong>Wait for room allocation</strong><small>The warden manages room assignments and availability.</small></div></li>
-                    <li><span>3</span><div><strong>Report and follow issues</strong><small>Keep complaints and their resolution status in one place.</small></div></li>
+                    <li><span>1</span><div><strong>See your hostel day</strong><small>Check today's four-meal menu, notices, room, and attendance.</small></div></li>
+                    <li><span>2</span><div><strong>Request help or approval</strong><small>Submit fee receipts, maintenance tickets, visitor requests, or outpasses.</small></div></li>
+                    <li><span>3</span><div><strong>Track what happens next</strong><small>Follow decisions and updates from your personal dashboard.</small></div></li>
                 </ol>
             </article>
             <article class="landing-workflow-panel landing-workflow-panel-warden">
                 <p class="landing-workflow-label">FOR WARDENS</p>
                 <h3>Manage operations in one view.</h3>
                 <ol>
-                    <li><span>1</span><div><strong>Review student records</strong><small>Keep campus, department, year, and room details together.</small></div></li>
-                    <li><span>2</span><div><strong>Manage room occupancy</strong><small>Search the inventory and track available spaces.</small></div></li>
-                    <li><span>3</span><div><strong>Close the complaint loop</strong><small>Review issues and mark them resolved when complete.</small></div></li>
+                    <li><span>1</span><div><strong>See the operational picture</strong><small>Review students, bed availability, attendance, fees, and open requests.</small></div></li>
+                    <li><span>2</span><div><strong>Publish and coordinate</strong><small>Set daily menus, notices, duties, and campus service assignments.</small></div></li>
+                    <li><span>3</span><div><strong>Record decisions and outcomes</strong><small>Approve requests, resolve work, and export operational registers.</small></div></li>
                 </ol>
             </article>
         </div>
@@ -254,6 +259,7 @@
                 <article><span>01</span><div><strong>Hashed passwords</strong><p>Passwords are stored as hashes rather than readable text.</p></div></article>
                 <article><span>02</span><div><strong>Role-checked actions</strong><p>Student and warden operations are restricted by account role.</p></div></article>
                 <article><span>03</span><div><strong>Protected form submissions</strong><p>State-changing forms include CSRF validation.</p></div></article>
+                <article><span>04</span><div><strong>Clear integration boundaries</strong><p>Fee review and finance entries are records only. Payment gateways, SMS/OTP, SIS/ERP, and access-control devices are not simulated as live services.</p></div></article>
             </div>
         </div>
     </section>

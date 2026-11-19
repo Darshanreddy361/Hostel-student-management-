@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+          content="Warden operations for notices, meals, gate requests, facilities, staff, finance, and reports.">
+    <title>Operations Hub | NIE HostelOS</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="admin-dashboard-page operations-page">
+<aside class="admin-sidebar" aria-label="Warden workspace navigation">
+    <a class="admin-sidebar-brand" href="{{ url_for('warden_dashboard') }}">
+        <span class="admin-sidebar-logo">
+            <img src="{{ url_for('static', filename='nie-logo.svg') }}" alt="">
+        </span>
+        <span><strong>HostelOS</strong><small>NIE Mysuru</small></span>
+    </a>
+    <nav class="admin-sidebar-nav">
+        <a href="{{ url_for('warden_dashboard') }}"><span class="admin-nav-icon nav-icon-blue" aria-hidden="true">⌂</span> Dashboard</a>
+        <a href="{{ url_for('warden_attendance') }}"><span class="admin-nav-icon nav-icon-green" aria-hidden="true">▣</span> Attendance</a>
+        <a class="{% if active_tab == 'notices' %}active{% endif %}" href="#notices"><span class="admin-nav-icon nav-icon-teal" aria-hidden="true">▤</span> Notices</a>
+        <a class="{% if active_tab == 'meals' %}active{% endif %}" href="#meals"><span class="admin-nav-icon nav-icon-amber" aria-hidden="true">◉</span> Meals</a>
+        <a class="{% if active_tab == 'gate' %}active{% endif %}" href="#gate"><span class="admin-nav-icon nav-icon-red" aria-hidden="true">↗</span> Gate requests
+            {% if operations_summary.pending_visitors + operations_summary.pending_outpasses %}
+                <b>{{ operations_summary.pending_visitors + operations_summary.pending_outpasses }}</b>
+            {% endif %}
+        </a>
+        <a class="{% if active_tab == 'facilities' %}active{% endif %}" href="#facilities"><span class="admin-nav-icon nav-icon-cyan" aria-hidden="true">⚒</span> Facilities
+            {% if operations_summary.open_tickets %}<b>{{ operations_summary.open_tickets }}</b>{% endif %}
+        </a>
+        <a class="{% if active_tab == 'staff' %}active{% endif %}" href="#staff"><span class="admin-nav-icon nav-icon-violet" aria-hidden="true">♙</span> Staff &amp; duties</a>
+        <a class="{% if active_tab == 'finance' %}active{% endif %}" href="#finance"><span class="admin-nav-icon nav-icon-green" aria-hidden="true">₹</span> Finance</a>
+        <a class="{% if active_tab == 'reports' %}active{% endif %}" href="#reports"><span class="admin-nav-icon nav-icon-blue" aria-hidden="true">▥</span> Reports</a>
+    </nav>
+    <div class="admin-sidebar-account">
+        <span class="admin-avatar">{{ warden_username[0]|upper }}</span>
+        <div><strong>{{ warden_username }}</strong><small>WARDEN</small></div>
+        <form action="{{ url_for('logout') }}" method="POST">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" title="Log out" aria-label="Log out">↗</button>
+        </form>
+    </div>
+</aside>
+
+<div class="admin-main">
+    <header class="admin-topbar operations-topbar">
+        <div class="header-inner">
+            <div class="header-copy">
+                <p class="operations-kicker">HOSTELOS · WARDEN WORKSPACE</p>
+                <h1>Operations hub</h1>
+                <p>Coordinate student services, daily operations, and follow-through in one place.</p>
+            </div>
+            <div class="header-actions">
+                <a class="header-link" href="{{ url_for('warden_dashboard') }}">Main dashboard</a>
+                <span class="operations-date">{{ today }}</span>
+            </div>
+        </div>
+    </header>
+
+    <nav class="operations-nav" aria-label="Operations sections">
+        <a href="#overview"><span class="operations-nav-icon nav-icon-blue" aria-hidden="true">⌂</span>Overview</a>
+        <a href="#notices"><span class="operations-nav-icon nav-icon-teal" aria-hidden="true">▤</span>Notices</a>
+        <a href="#meals"><span class="operations-nav-icon nav-icon-amber" aria-hidden="true">◉</span>Meals</a>
+        <a href="#gate"><span class="operations-nav-icon nav-icon-red" aria-hidden="true">↗</span>Gate</a>
+        <a href="#facilities"><span class="operations-nav-icon nav-icon-cyan" aria-hidden="true">⚒</span>Facilities</a>
+        <a href="#staff"><span class="operations-nav-icon nav-icon-violet" aria-hidden="true">♙</span>Staff</a>
+        <a href="#finance"><span class="operations-nav-icon nav-icon-green" aria-hidden="true">₹</span>Finance</a>
+        <a href="#reports"><span class="operations-nav-icon nav-icon-blue" aria-hidden="true">▥</span>Reports</a>
+    </nav>
+
+    <main class="container operations-container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% for category, message in messages %}
+                <div class="message {{ category }}" role="status">{{ message }}</div>
+            {% endfor %}
+        {% endwith %}
+
+        <section class="operations-welcome" id="overview">
+            <div>
+                <p class="operations-kicker">A CLEARER DAY AT THE HOSTEL</p>
+                <h2>Good operations start with good visibility.</h2>
+                <p>Publish updates, coordinate requests, and keep a traceable record of decisions.</p>
+            </div>
+            <a class="operations-primary-link" href="{{ url_for('warden_attendance') }}">Open attendance register</a>
+        </section>
+
+        <section class="operations-metrics" aria-label="Operations summary">
+            <article class="operations-metric">
+                <span class="operations-metric-icon operations-icon-amber">↗</span>
+                <div><small>Gate requests</small><strong>{{ operations_summary.pending_visitors + operations_summary.pending_outpasses }}</strong><span>awaiting review</span></div>
+            </article>
+            <article class="operations-metric">
+                <span class="operations-metric-icon operations-icon-red">⚒</span>
+                <div><small>Maintenance queue</small><strong>{{ operations_summary.open_tickets }}</strong><span>open or in progress</span></div>
+            </article>
+            <article class="operations-metric">
+                <span class="operations-metric-icon operations-icon-green">♙</span>
+                <div><small>Active staff</small><strong>{{ operations_summary.active_staff }}</strong><span>across both campuses</span></div>
+            </article>
+            <article class="operations-metric">
+                <span class="operations-metric-icon operations-icon-blue">₹</span>
+                <div><small>Finance entries</small><strong>{{ finance_entries|length }}</strong><span>recent records shown</span></div>
+            </article>
+        </section>
+
+        <section class="operations-panel" id="notices">
+            <div class="operations-section-heading">
+                <span class="operations-section-icon operations-section-teal" aria-hidden="true">▤</span>
+                <div><p class="operations-kicker">COMMUNICATION</p><h2>Notices &amp; hostel updates</h2><p>Keep students informed with a dated, in-portal notice board.</p></div>
+                <span class="operations-count">{{ notices|length }} recent</span>
+            </div>
+            <div class="operations-two-column">
+                <form class="operations-form" method="POST" action="{{ url_for('create_notice') }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <label>Notice title<input name="title" maxlength="160" required placeholder="e.g. Water maintenance update"></label>
+                    <label>Message<textarea name="body" rows="4" maxlength="3000" required placeholder="Share the details students need to know."></textarea></label>
+                    <div class="operations-form-row">
+                        <label>Audience<select name="audience"><option value="All">All portal users</option><option value="Students">Students</option></select></label>
+                        <label>Expires on<input name="expires_on" type="date" min="{{ today }}"></label>
+                    </div>
+                    <button class="operations-button" type="submit">Publish notice</button>
+                </form>
+                <div class="operations-record-list">
+                    {% for notice in notices[:6] %}
+                        <article class="operations-record">
+                            <div class="operations-record-heading"><strong>{{ notice.title }}</strong><span class="operations-status {% if notice.published %}status-active{% else %}status-muted{% endif %}">{{ "Published" if notice.published else "Draft" }}</span></div>
+                            <p>{{ notice.body }}</p>
+                            <small>{{ notice.audience }} · {{ notice.created_at }}{% if notice.expires_on %} · Until {{ notice.expires_on }}{% endif %}</small>
+                            <form class="operations-rule-toggle" method="POST" action="{{ url_for('update_notice_status', notice_id=notice.id) }}">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button name="published" value="{{ 0 if notice.published else 1 }}" type="submit">{{ "Unpublish" if notice.published else "Republish" }}</button>
+                            </form>
+                        </article>
+                    {% else %}
+                        <p class="operations-empty">No notices published yet.</p>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="operations-subsection">
+                <h3>Hostel rules &amp; resident guide</h3>
+                <div class="operations-two-column">
+                    <form class="operations-form" method="POST" action="{{ url_for('create_hostel_rule') }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <label>Category<input name="category" maxlength="80" required placeholder="Quiet hours"></label>
+                        <label>Rule title<input name="title" maxlength="160" required></label>
+                        <label>Guidance<textarea name="body" rows="3" maxlength="3000" required></textarea></label>
+                        <button class="operations-button" type="submit">Publish hostel rule</button>
+                    </form>
+                    <div class="operations-record-list">
+                        {% for rule in hostel_rules[:8] %}
+                            <article class="operations-record">
+                                <div class="operations-record-heading">
+                                    <strong>{{ rule.title }}</strong>
+                                    <span class="operations-status {% if rule.active %}status-active{% else %}status-muted{% endif %}">{{ "Published" if rule.active else "Hidden" }}</span>
+                                </div>
+                                <p>{{ rule.body }}</p>
+                                <small>{{ rule.category }} · {{ rule.created_at }}</small>
+                                <form class="operations-rule-toggle" method="POST" action="{{ url_for('update_hostel_rule_status', rule_id=rule.id) }}">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button name="active" value="{{ 0 if rule.active else 1 }}" type="submit">{{ "Hide rule" if rule.active else "Publish rule" }}</button>
+                                </form>
+                            </article>
+                        {% else %}
+                            <p class="operations-empty">No hostel rules published yet.</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="operations-panel" id="meals">
+            <div class="operations-section-heading">
+                <span class="operations-section-icon operations-section-amber" aria-hidden="true">◉</span>
+                <div><p class="operations-kicker">MESS &amp; MEALS</p><h2>Daily mess menu</h2><p>Publish breakfast, lunch, snacks, and dinner for either hostel and any date up to 90 days ahead.</p></div>
+                <span class="operations-count">{{ meal_menus|length }} menus</span>
+            </div>
+            <div class="operations-two-column">
+                <form class="operations-form" method="POST" action="{{ url_for('save_daily_meal_menu') }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <div class="operations-form-row">
+                        <label>Hostel / campus<select name="campus" required>{% for campus in campuses %}<option value="{{ campus }}">{{ campus }}</option>{% endfor %}</select></label>
+                        <label>Menu date<input name="meal_date" type="date" min="{{ today }}" required></label>
+                    </div>
+                    <label>Breakfast<textarea name="menu_breakfast" rows="2" maxlength="1000" required placeholder="Breakfast items and notes"></textarea></label>
+                    <label>Lunch<textarea name="menu_lunch" rows="2" maxlength="1000" required placeholder="Lunch items and notes"></textarea></label>
+                    <label>Snacks<textarea name="menu_snacks" rows="2" maxlength="1000" required placeholder="Evening snacks and notes"></textarea></label>
+                    <label>Dinner<textarea name="menu_dinner" rows="2" maxlength="1000" required placeholder="Dinner items and notes"></textarea></label>
+                    <button class="operations-button" type="submit">Save daily menu</button>
+                </form>
+                <div class="operations-table-wrap">
+                    <table class="operations-table">
+                        <thead><tr><th>Date / meal</th><th>Hostel</th><th>Menu</th><th>Reserved</th></tr></thead>
+                        <tbody>
+                        {% for meal in meal_menus[:12] %}
+                            <tr><td><strong>{{ meal.meal_date }}</strong><small>{{ meal.meal_type }}</small></td><td>{{ meal.campus }}</td><td>{{ meal.menu_text }}</td><td>{{ meal.reservation_count }}</td></tr>
+                        {% else %}
+                            <tr><td colspan="4" class="operations-empty">No menus published yet.</td></tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <section class="operations-panel" id="gate">
+            <div class="operations-section-heading">
+                <span class="operations-section-icon operations-section-red" aria-hidden="true">↗</span>
+                <div><p class="operations-kicker">STUDENT SAFETY</p><h2>Visitors &amp; outpasses</h2><p>Review requests and record approved gate movement. No external OTP or SMS is assumed.</p></div>
+                <span class="operations-count">{{ operations_summary.pending_visitors + operations_summary.pending_outpasses }} pending</span>
+            </div>
+            <div class="operations-subsection">
+                <h3>Visitor requests</h3>
+                <div class="operations-table-wrap">
+                    <table class="operations-table">
+                        <thead><tr><th>Student</th><th>Visitor</th><th>Visit</th><th>Purpose</th><th>Status / decision</th></tr></thead>
+                        <tbody>
+                        {% for item in visitor_requests %}
+                            <tr>
+                                <td><strong>{{ item.student_name }}</strong><small>{{ item.usn }} · {{ item.campus }}</small></td>
+                                <td>{{ item.visitor_name }}<small>{{ item.relationship }} · {{ item.visitor_phone }}</small></td>
+                                <td>{{ item.visit_date }}<small>{{ item.visit_time }}</small></td>
+                                <td>{{ item.purpose }}</td>
+                                <td>
+                                    <span class="operations-status status-{{ item.status|lower }}">{{ item.status }}</span>
+                                    {% if item.status == "Pending" %}
+                                        <form class="operations-decision-form" method="POST" action="{{ url_for('decide_visitor_request', request_id=item.id) }}">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                            <input name="decision_note" maxlength="500" placeholder="Reason required for rejection">
+                                            <div><button name="decision" value="Approved" type="submit">Approve</button><button class="operations-reject" name="decision" value="Rejected" type="submit" onclick="this.form.elements.decision_note.required=true">Reject</button></div>
+                                        </form>
+                                    {% elif item.decision_note %}<small>{{ item.decision_note }}</small>{% endif %}
+                                </td>
+                            </tr>
+                        {% else %}
+                            <tr><td colspan="5" class="operations-empty">No visitor requests yet.</td></tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="operations-subsection">
+                <h3>Outpass requests &amp; gate register</h3>
+                <div class="operations-table-wrap">
+                    <table class="operations-table">
+                        <thead><tr><th>Student</th><th>Destination / reason</th><th>Schedule</th><th>Status</th><th>Decision / gate</th></tr></thead>
+                        <tbody>
+                        {% for item in outpasses %}
+                            <tr>
+                                <td><strong>{{ item.student_name }}</strong><small>{{ item.usn }} · {{ item.campus }}</small></td>
+                                <td>{{ item.destination }}<small>{{ item.reason }}</small></td>
+                                <td>Out {{ item.departure_at }}<small>Back {{ item.expected_return_at }}</small></td>
+                                <td><span class="operations-status status-{{ item.status|lower|replace(' ', '-') }}">{{ item.status }}</span></td>
+                                <td>
+                                    {% if item.status == "Pending" %}
+                                        <form class="operations-decision-form" method="POST" action="{{ url_for('decide_outpass', outpass_id=item.id) }}">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                            <input name="decision_note" maxlength="500" placeholder="Reason required for rejection">
+                                            <div><button name="decision" value="Approved" type="submit">Approve</button><button class="operations-reject" name="decision" value="Rejected" type="submit" onclick="this.form.elements.decision_note.required=true">Reject</button></div>
+                                        </form>
+                                    {% elif item.status == "Approved" %}
+                                        {% if not item.checked_out_at %}
+                                            <form method="POST" action="{{ url_for('record_outpass_gate_event', outpass_id=item.id) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button name="action" value="check-out" type="submit">Record exit</button></form>
+                                        {% elif not item.checked_in_at %}
+                                            <small>Exited {{ item.checked_out_at }}</small>
+                                            <form method="POST" action="{{ url_for('record_outpass_gate_event', outpass_id=item.id) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button name="action" value="check-in" type="submit">Record return</button></form>
+                                        {% endif %}
+                                    {% else %}<small>{{ item.checked_in_at or item.decision_note or item.approved_at or "" }}</small>{% endif %}
+                                </td>
+                            </tr>
+                        {% else %}
+                            <tr><td colspan="5" class="operations-empty">No outpass requests yet.</td></tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <section class="operations-panel" id="facilities">
+            <div class="operations-section-heading">
+                <span class="operations-section-icon operations-section-cyan" aria-hidden="true">⚒</span>
+                <div><p class="operations-kicker">CAMPUS SERVICES</p><h2>Facilities &amp; maintenance</h2><p>Track facility availability and assign student-reported work orders.</p></div>
+                <span class="operations-count">{{ operations_summary.open_tickets }} open tickets</span>
+            </div>
+            <form class="operations-inline-form" method="POST" action="{{ url_for('create_facility') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <label>Campus<select name="campus" required>{% for campus in campuses %}<option value="{{ campus }}">{{ campus }}</option>{% endfor %}</select></label>
+                <label>Facility<input name="name" maxlength="100" required placeholder="Laundry room"></label>
+                <label>Category<input name="category" maxlength="60" required placeholder="Laundry"></label>
+                <label>Location<input name="location" maxlength="120" required placeholder="Block A · Ground floor"></label>
+                <button class="operations-button" type="submit">Add facility</button>
+            </form>
+            <div class="operations-facility-list">
+                {% for facility in facilities %}
+                    <article class="operations-facility">
+                        <div><strong>{{ facility.name }}</strong><small>{{ facility.category }} · {{ facility.location }} · {{ facility.campus }}</small></div>
+                        <form method="POST" action="{{ url_for('update_facility_status', facility_id=facility.id) }}">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <select name="status" aria-label="Facility status">
+                                {% for status in ("Operational", "Limited", "Closed") %}<option value="{{ status }}" {% if facility.status == status %}selected{% endif %}>{{ status }}</option>{% endfor %}
+                            </select>
+                            <button type="submit">Update</button>
+                        </form>
+                    </article>
+                {% else %}
+                    <p class="operations-empty">Add facilities to publish the campus service directory.</p>
+                {% endfor %}
+            </div>
+            <div class="operations-subsection">
+                <h3>Maintenance tickets</h3>
+                <div class="operations-table-wrap">
+                    <table class="operations-table">
+                        <thead><tr><th>Ticket / student</th><th>Facility / issue</th><th>Priority</th><th>Status &amp; assignment</th><th>Resolution</th></tr></thead>
+                        <tbody>
+                        {% for ticket in tickets %}
+                            <tr>
+                                <td><strong>#{{ ticket.id }} · {{ ticket.student_name }}</strong><small>{{ ticket.usn }} · {{ ticket.campus }} · {{ ticket.created_at }}</small></td>
+                                <td>{{ ticket.facility_name or "General" }} · {{ ticket.subject }}<small>{{ ticket.description }}</small></td>
+                                <td><span class="operations-status status-{{ ticket.priority|lower }}">{{ ticket.priority }}</span></td>
+                                <td><span class="operations-status status-{{ ticket.status|lower|replace(' ', '-') }}">{{ ticket.status }}</span><small>{{ ticket.assigned_staff_name or "Unassigned" }}</small></td>
+                                <td>
+                                    <form class="operations-ticket-form" method="POST" action="{{ url_for('update_maintenance_ticket', ticket_id=ticket.id) }}">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <select name="status" aria-label="Ticket status">{% for status in ticket_statuses %}<option value="{{ status }}" {% if ticket.status == status %}selected{% endif %}>{{ status }}</option>{% endfor %}</select>
+                                        <select name="assigned_staff_id" aria-label="Assign staff"><option value="">Unassigned</option>{% for person in staff if person.active and person.campus == ticket.campus %}<option value="{{ person.id }}" {% if ticket.assigned_staff_id == person.id %}selected{% endif %}>{{ person.name }}</option>{% endfor %}</select>
+                                        <textarea name="resolution_note" rows="2" maxlength="1000" placeholder="Required to resolve">{{ ticket.resolution_note or "" }}</textarea>
+                                        <button type="submit">Save update</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        {% else %}
+                            <tr><td colspan="5" class="operations-empty">No maintenance tickets submitted.</td></tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <section class="operations-panel" id="staff">
+            <div class="operations-section-heading">
+                <span class="operations-section-icon operations-section-violet" aria-hidden="true">♙</span>
+                <div><p class="operations-kicker">PEOPLE &amp; COVERAGE</p><h2>Staff directory &amp; duty roster</h2><p>Maintain a campus staff list and record dated shift assignments.</p></div>
+                <span class="operations-count">{{ operations_summary.active_staff }} active</span>
+            </div>
+            <form class="operations-inline-form" method="POST" action="{{ url_for('create_hostel_staff') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <label>Name<input name="name" maxlength="100" required></label>
+                <label>Role<input name="role" maxlength="80" required placeholder="Warden, security, maintenance"></label>
+                <label>Campus<select name="campus" required>{% for campus in campuses %}<option value="{{ campus }}">{{ campus }}</option>{% endfor %}</select></label>
+                <label>Phone<input name="phone" type="tel" maxlength="24"></label>
+                <button class="operations-button" type="submit">Add staff member</button>
+            </form>
+            <div class="operations-two-column operations-staff-layout">
+                <div class="operations-record-list">
+                    {% for person in staff %}
+                        <article class="operations-record">
+                            <div class="operations-record-heading"><strong>{{ person.name }}</strong><span class="operations-status {% if person.active %}status-active{% else %}status-muted{% endif %}">{{ "Active" if person.active else "Inactive" }}</span></div>
+                            <p>{{ person.role }} · {{ person.campus }}</p>
+                            <small>{{ person.phone or "No phone recorded" }}</small>
+                        </article>
+                    {% else %}<p class="operations-empty">No staff members listed.</p>{% endfor %}
+                </div>
+                <form class="operations-form" method="POST" action="{{ url_for('create_duty_assignment') }}">
+                    <h3>Assign a duty</h3>
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <label>Staff member<select name="staff_id" required><option value="">Select active staff</option>{% for person in staff if person.active %}<option value="{{ person.id }}">{{ person.name }} · {{ person.campus }}</option>{% endfor %}</select></label>
+                    <div class="operations-form-row">
+                        <label>Date<input name="duty_date" type="date" min="{{ today }}" required></label>
+                        <label>Shift<select name="shift" required><option>Day</option><option>Evening</option><option>Night</option></select></label>
+                    </div>
+                    <label>Location<input name="location" maxlength="120" required placeholder="Main gate"></label>
+                    <label>Notes<input name="notes" maxlength="500"></label>
+                    <button class="operations-button" type="submit">Save duty assignment</button>
+                </form>
+            </div>
+            <div class="operations-subsection">
+                <h3>Recent roster</h3>
+                <div class="operations-table-wrap">
+                    <table class="operations-table"><thead><tr><th>Date</th><th>Staff</th><th>Shift</th><th>Location</th><th>Campus / notes</th></tr></thead><tbody>
+                    {% for duty in duty_rosters[:20] %}<tr><td>{{ duty.duty_date }}</td><td>{{ duty.staff_name }}<small>{{ duty.staff_role }}</small></td><td>{{ duty.shift }}</td><td>{{ duty.location }}</td><td>{{ duty.campus }}<small>{{ duty.notes or "" }}</small></td></tr>{% else %}<tr><td colspan="5" class="operations-empty">No duty assignments yet.</td></tr>{% endfor %}
+                    </tbody></table>
+                </div>
+            </div>
+        </section>
+
+        <section class="operations-panel" id="finance">
+            <div class="operations-section-heading">
+                <span class="operations-section-icon operations-section-green" aria-hidden="true">₹</span>
+                <div><p class="operations-kicker">ADMINISTRATIVE RECORDS</p><h2>Finance &amp; vendors</h2><p>Record income, expenses, invoices, and payment status. This does not process payments.</p></div>
+                <span class="operations-count">{{ finance_summary.due_count or 0 }} due</span>
+            </div>
+            <div class="operations-finance-summary">
+                <article><small>Recorded income</small><strong>₹{{ "%.2f"|format(finance_summary.income_total) }}</strong></article>
+                <article><small>Recorded expenses</small><strong>₹{{ "%.2f"|format(finance_summary.expense_total) }}</strong></article>
+                <article><small>Recorded balance</small><strong>₹{{ "%.2f"|format(finance_summary.income_total - finance_summary.expense_total) }}</strong></article>
+            </div>
+            <div class="operations-two-column">
+                <form class="operations-form" method="POST" action="{{ url_for('create_vendor') }}">
+                    <h3>Vendor directory</h3>
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <label>Vendor name<input name="name" maxlength="120" required></label>
+                    <div class="operations-form-row"><label>Category<input name="category" maxlength="60" required></label><label>Campus<select name="campus" required>{% for campus in campuses %}<option value="{{ campus }}">{{ campus }}</option>{% endfor %}</select></label></div>
+                    <div class="operations-form-row"><label>Contact name<input name="contact_name" maxlength="100"></label><label>Phone<input name="phone" type="tel" maxlength="24"></label></div>
+                    <button class="operations-button" type="submit">Add vendor</button>
+                    <div class="operations-vendor-chips">{% for vendor in vendors[:12] %}<span>{{ vendor.name }} · {{ vendor.category }}</span>{% else %}<small>No vendors recorded.</small>{% endfor %}</div>
+                </form>
+                <form class="operations-form" method="POST" action="{{ url_for('create_finance_entry') }}">
+                    <h3>Record income or expense</h3>
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <div class="operations-form-row"><label>Entry type<select name="entry_type" required><option>Income</option><option>Expense</option></select></label><label>Category<input name="category" maxlength="80" required placeholder="Mess supplies"></label></div>
+                    <div class="operations-form-row"><label>Amount (₹)<input name="amount" type="number" min="0.01" step="0.01" required></label><label>Date<input name="entry_date" type="date" max="{{ today }}" required></label></div>
+                    <div class="operations-form-row"><label>Vendor<select name="vendor_id"><option value="">No vendor</option>{% for vendor in vendors if vendor.active %}<option value="{{ vendor.id }}">{{ vendor.name }} · {{ vendor.campus }}</option>{% endfor %}</select></label><label>Invoice reference<input name="invoice_reference" maxlength="100"></label></div>
+                    <div class="operations-form-row"><label>Payment status<select name="payment_status"><option>Recorded</option><option>Due</option><option>Paid</option></select></label><label>Description<input name="description" maxlength="1000" required></label></div>
+                    <button class="operations-button" type="submit">Save finance record</button>
+                </form>
+            </div>
+            <div class="operations-subsection">
+                <h3>Recent finance register</h3>
+                <div class="operations-table-wrap"><table class="operations-table"><thead><tr><th>Date</th><th>Type / category</th><th>Amount</th><th>Vendor / invoice</th><th>Status / description</th></tr></thead><tbody>
+                {% for entry in finance_entries[:30] %}<tr><td>{{ entry.entry_date }}</td><td>{{ entry.entry_type }}<small>{{ entry.category }}</small></td><td>₹{{ "%.2f"|format(entry.amount) }}</td><td>{{ entry.vendor_name or "—" }}<small>{{ entry.invoice_reference or "" }}</small></td><td><span class="operations-status status-{{ entry.payment_status|lower }}">{{ entry.payment_status }}</span><small>{{ entry.description }}</small></td></tr>{% else %}<tr><td colspan="5" class="operations-empty">No finance records yet.</td></tr>{% endfor %}
+                </tbody></table></div>
+            </div>
+        </section>
+
+        <section class="operations-panel" id="reports">
+            <div class="operations-section-heading">
+                <span class="operations-section-icon operations-section-blue" aria-hidden="true">▥</span>
+                <div><p class="operations-kicker">ACCOUNTABILITY</p><h2>Reports &amp; exports</h2><p>Download focused CSV extracts for review and demonstration.</p></div>
+            </div>
+            <div class="operations-report-grid">
+                <a href="{{ url_for('download_operations_report', report_type='students') }}"><strong>Student roster</strong><span>Campus, course, and bed assignment</span><b>Download CSV ↗</b></a>
+                <a href="{{ url_for('download_operations_report', report_type='emergency-contacts') }}"><strong>Emergency contacts · confidential</strong><span>Warden-only guardian and alternate phone list</span><b>Download CSV ↗</b></a>
+                <a href="{{ url_for('download_operations_report', report_type='attendance') }}"><strong>Attendance register</strong><span>Dated attendance records and marker</span><b>Download CSV ↗</b></a>
+                <a href="{{ url_for('download_operations_report', report_type='fees') }}"><strong>Fee verification</strong><span>Receipt status and verification dates</span><b>Download CSV ↗</b></a>
+                <a href="{{ url_for('download_operations_report', report_type='gate') }}"><strong>Gate requests</strong><span>Visitor and outpass records</span><b>Download CSV ↗</b></a>
+                <a href="{{ url_for('download_operations_report', report_type='maintenance') }}"><strong>Maintenance register</strong><span>Priority, status, and resolution notes</span><b>Download CSV ↗</b></a>
+                <a href="{{ url_for('download_operations_report', report_type='finance') }}"><strong>Finance register</strong><span>Recorded income and expense entries</span><b>Download CSV ↗</b></a>
+            </div>
+            <p class="operations-privacy-note">Exports are available only to signed-in wardens and are generated from the current demo database. Review demo privacy guidance before entering real student data.</p>
+        </section>
+    </main>
+    <footer><p>NIE Mysuru · HostelOS operations demo</p></footer>
+</div>
+<script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

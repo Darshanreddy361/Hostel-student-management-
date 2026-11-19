@@ -14,6 +14,7 @@ __pycache__/
 
 # Ignore local database
 hostel.db
+receipts/
 
 # Ignore environment files
 .env

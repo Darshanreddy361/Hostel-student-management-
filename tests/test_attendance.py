@@ -71,7 +71,19 @@ class AttendanceWorkflowTests(unittest.TestCase):
 
         response = portal.app.test_client().get("/warden/login")
         self.assertEqual(response.status_code, 200)
-        self.assertIn(b"Daily hostel attendance", response.data)
+        self.assertIn(b"Attendance and fee verification", response.data)
+        self.assertIn(b"Warden username", response.data)
+        self.assertIn(b"WARDEN ACCOUNT", response.data)
+        self.assertIn(b"data-password-toggle", response.data)
+        self.assertIn(
+            b"Passwords are never displayed here",
+            response.data,
+        )
+
+        response = portal.app.test_client().get("/login")
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(b"Student username or USN", response.data)
+        self.assertIn(b"STUDENT ACCOUNT", response.data)
 
     def test_student_directory_shows_saved_attendance_status(self):
         self.post_attendance({

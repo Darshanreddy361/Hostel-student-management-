@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Assign a bed · HostelOS</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="admin-dashboard-page">
+<main class="container allocation-page">
+    <a class="header-link" href="{{ url_for('warden_dashboard') }}#student-directory">
+        Back to student directory
+    </a>
+    <section class="panel allocation-panel">
+        <p class="eyebrow">Room allocation</p>
+        <h1>Assign a bed</h1>
+        <p>
+            Choose a block, floor, room, and available bed for
+            <strong>{{ student.name }}</strong> ({{ student.usn }}) · {{ student.campus }}.
+        </p>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% for category, message in messages %}
+                <div class="message {{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endwith %}
+
+        {% if beds %}
+            <form method="POST"
+                  action="{{ url_for('allocate_bed', student_id=student.id) }}"
+                  data-bed-allocation-form>
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="allocation-select-grid">
+                    <label class="room-filter">
+                        <span>Block</span>
+                        <select name="building_id" data-building-select required>
+                            <option value="">Select a block</option>
+                            {% for building in buildings %}
+                                <option value="{{ building.id }}">{{ building.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </label>
+                    <label class="room-filter">
+                        <span>Floor</span>
+                        <select name="floor_id" data-floor-select required>
+                            <option value="">Select a floor</option>
+                            {% for floor in floors %}
+                                <option value="{{ floor.id }}"
+                                        data-building-id="{{ floor.building_id }}">
+                                    {{ floor.name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </label>
+                    <label class="room-filter">
+                        <span>Room</span>
+                        <select name="room_id" data-room-select required>
+                            <option value="">Select a room</option>
+                            {% for room in rooms %}
+                                <option value="{{ room.id }}"
+                                        data-building-id="{{ room.building_id }}"
+                                        data-floor-id="{{ room.floor_id }}">
+                                    {{ room.room_number }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </label>
+                    <label class="room-filter">
+                        <span>Bed</span>
+                        <select name="bed_id" data-bed-select required>
+                            <option value="">Select an available bed</option>
+                            {% for bed in beds %}
+                                <option value="{{ bed.id }}" data-room-id="{{ bed.room_id }}">
+                                    {{ bed.bed_label }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </label>
+                </div>
+                <div class="allocation-actions">
+                    <button class="allocate-btn" type="submit">Assign selected bed</button>
+                    <a href="{{ url_for('warden_dashboard') }}#student-directory">Cancel</a>
+                </div>
+            </form>
+        {% else %}
+            <p class="empty-state">
+                There are no available beds in {{ student.campus }}. Add capacity or
+                release a bed before assigning this student.
+            </p>
+        {% endif %}
+    </section>
+</main>
+<script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

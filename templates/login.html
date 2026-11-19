@@ -6,14 +6,17 @@
     <title>Sign in | NIE Girls' Hostel</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
-<body>
+<body class="auth-page auth-page-{{ login_role }}">
 <header class="auth-page-header">
     <div class="header-inner">
         <div class="header-copy">
             <div class="brand-lockup">
                 <img src="{{ url_for('static', filename='nie-logo.svg') }}"
                      alt="The National Institute of Engineering logo">
-                <p class="eyebrow">NIE MYSURU</p>
+                <div>
+                    <p class="eyebrow">NIE MYSURU</p>
+                    <span class="auth-brand-caption">GIRLS' HOSTEL PORTAL</span>
+                </div>
             </div>
             <h1>Girls' Hostel Portal</h1>
             <p>
@@ -40,39 +43,65 @@
 
     <div class="auth-layout">
         <section class="auth-aside">
+            <div class="auth-role-lockup">
+                <span class="auth-role-emblem" aria-hidden="true">
+                    {% if login_role == "warden" %}
+                        <svg viewBox="0 0 24 24" fill="none">
+                            <path d="M12 3 19 6v5c0 4.5-2.8 7.8-7 10-4.2-2.2-7-5.5-7-10V6l7-3Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+                            <path d="m9 12 2 2 4-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    {% else %}
+                        <svg viewBox="0 0 24 24" fill="none">
+                            <circle cx="12" cy="8" r="3.3" stroke="currentColor" stroke-width="1.8"/>
+                            <path d="M5 20c.5-3.1 3.1-5.2 7-5.2s6.5 2.1 7 5.2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                        </svg>
+                    {% endif %}
+                </span>
+                <div>
+                    <strong>{{ "WARDEN WORKSPACE" if login_role == "warden" else "STUDENT PORTAL" }}</strong>
+                    <small>{{ "AUTHORIZED STAFF ACCESS" if login_role == "warden" else "YOUR HOSTEL ACCOUNT" }}</small>
+                </div>
+            </div>
             {% if login_role == "warden" %}
-                <p class="auth-aside-kicker">WARDEN WORKSPACE</p>
                 <h2>Hostel operations, clearly in control.</h2>
-                <p>Review room occupancy, take daily attendance, manage student records, and resolve complaints.</p>
+                <p>Manage campus operations from one role-specific workspace. Your sign-in does not display or share your password.</p>
             {% else %}
-                <p class="auth-aside-kicker">STUDENT PORTAL</p>
                 <h2>Your hostel information, all in one place.</h2>
-                <p>Sign in to check your room status, report an issue, and follow up on your complaints.</p>
+                <p>Sign in to check your room, today's mess menu, requests, fee receipts, and updates for your campus.</p>
             {% endif %}
             <ul class="auth-highlights">
-                <li><span>01</span><strong>Room allocation and availability</strong></li>
+                <li><span aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none"><path d="M4 20V8l8-5 8 5v12M8 20v-6h8v6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </span><strong>{{ "Room and bed allocation" if login_role == "warden" else "Your room and bed details" }}</strong></li>
                 <li>
-                    <span>02</span>
-                    <strong>
-                        {% if login_role == "warden" %}
-                            Daily hostel attendance
-                        {% else %}
-                            Student and warden workspaces
-                        {% endif %}
-                    </strong>
+                    <span aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none"><path d="M5 4h14v16H5zM8 8h8M8 12h8M8 16h5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    </span>
+                    <strong>{{ "Attendance and fee verification" if login_role == "warden" else "Daily meals and notices" }}</strong>
                 </li>
-                <li><span>03</span><strong>Complaints with clear status tracking</strong></li>
+                <li><span aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none"><path d="M4 5h16v12H9l-5 4V5Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M8 9h8M8 13h5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+                </span><strong>{{ "Requests, gate, and facilities" if login_role == "warden" else "Requests and service updates" }}</strong></li>
             </ul>
         </section>
 
         <section class="auth-card">
-            <p class="eyebrow">SECURE ACCESS</p>
+            <p class="eyebrow auth-card-kicker">
+                <span class="auth-card-kicker-icon" aria-hidden="true">
+                    {% if login_role == "warden" %}
+                        <svg viewBox="0 0 24 24" fill="none"><path d="M12 3 19 6v5c0 4.5-2.8 7.8-7 10-4.2-2.2-7-5.5-7-10V6l7-3Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="m9 12 2 2 4-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    {% else %}
+                        <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="3.3" stroke="currentColor" stroke-width="1.8"/><path d="M5 20c.5-3.1 3.1-5.2 7-5.2s6.5 2.1 7 5.2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+                    {% endif %}
+                </span>
+                {{ "WARDEN ACCOUNT" if login_role == "warden" else "STUDENT ACCOUNT" }}
+            </p>
             {% if login_role == "warden" %}
                 <h2>Warden sign in</h2>
-                <p class="auth-intro">Use your configured warden username and password.</p>
+                <p class="auth-intro">Use the username and password configured for your warden account.</p>
             {% else %}
                 <h2>Welcome back</h2>
-                <p class="auth-intro">Sign in with your student username or USN.</p>
+                <p class="auth-intro">Use your registered student username or USN.</p>
             {% endif %}
 
             <form class="auth-form"
@@ -80,23 +109,69 @@
                   method="POST">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
-                <label for="username">
+                <label class="auth-field-label" for="username">
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        {% if login_role == "warden" %}
+                            <path d="M12 3 19 6v5c0 4.5-2.8 7.8-7 10-4.2-2.2-7-5.5-7-10V6l7-3Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+                            <path d="m9 12 2 2 4-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                        {% else %}
+                            <circle cx="12" cy="8" r="3.3" stroke="currentColor" stroke-width="1.8"/>
+                            <path d="M5 20c.5-3.1 3.1-5.2 7-5.2s6.5 2.1 7 5.2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                        {% endif %}
+                    </svg>
                     {{ "Warden username" if login_role == "warden" else "Student username or USN" }}
                 </label>
-                <input id="username"
-                       name="username"
-                       type="text"
-                       autocomplete="username"
-                       required>
+                <div class="auth-input-wrap">
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        {% if login_role == "warden" %}
+                            <path d="M12 3 19 6v5c0 4.5-2.8 7.8-7 10-4.2-2.2-7-5.5-7-10V6l7-3Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+                        {% else %}
+                            <circle cx="12" cy="8" r="3.3" stroke="currentColor" stroke-width="1.8"/>
+                            <path d="M5 20c.5-3.1 3.1-5.2 7-5.2s6.5 2.1 7 5.2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                        {% endif %}
+                    </svg>
+                    <input id="username"
+                           name="username"
+                           type="text"
+                           autocomplete="username"
+                           placeholder="{{ 'Enter your warden username' if login_role == 'warden' else 'Enter your registered USN or username' }}"
+                           required>
+                </div>
 
-                <label for="password">Password</label>
-                <input id="password"
-                       name="password"
-                       type="password"
-                       autocomplete="current-password"
-                       required>
+                <label class="auth-field-label" for="password">
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="4" y="10" width="16" height="11" rx="2" stroke="currentColor" stroke-width="1.8"/><path d="M8 10V7a4 4 0 0 1 8 0v3M12 14v3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+                    Password
+                </label>
+                <div class="auth-input-wrap auth-password-wrap">
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="4" y="10" width="16" height="11" rx="2" stroke="currentColor" stroke-width="1.8"/><path d="M8 10V7a4 4 0 0 1 8 0v3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+                    <input id="password"
+                           name="password"
+                           type="password"
+                           autocomplete="current-password"
+                           placeholder="Enter your password"
+                           required>
+                    <button class="auth-password-toggle"
+                            type="button"
+                            data-password-toggle
+                            aria-label="Show password"
+                            aria-pressed="false">Show</button>
+                </div>
 
-                <button class="add-btn" type="submit">Sign in to portal</button>
+                <p class="auth-credential-hint">
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/><path d="M12 11v5M12 8h.01" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+                    {% if login_role == "warden" %}
+                        Use the credentials provided by your portal administrator. Passwords are never displayed here.
+                    {% else %}
+                        Use the USN or username and password you chose during registration.
+                    {% endif %}
+                </p>
+
+                <button class="add-btn" type="submit">
+                    <span class="auth-submit-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none"><path d="M10 17l5-5-5-5M15 12H3M21 4v16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    </span>
+                    Sign in to {{ "warden workspace" if login_role == "warden" else "student portal" }}
+                </button>
             </form>
 
             {% if login_role == "warden" and not warden_configured %}
