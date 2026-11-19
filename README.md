@@ -26,7 +26,14 @@ python -m pip install -r requirements.txt
 python app.py
 ```
 
-The development server is available at `http://localhost:5000`.
+The development server is available at `http://localhost:5000`. Open that
+address directly in the browser's address bar; it works in Safari, Chrome,
+Firefox, and Edge on the same computer. The Docker container in this workspace
+is published at `http://localhost:5001`.
+
+`localhost` always refers to the computer running the browser. To open the
+portal from another device, use the deployed Render URL or the server
+computer's network address instead.
 
 In another terminal, create a warden account when running locally:
 
@@ -138,6 +145,10 @@ docker run -d --name nie-hostel-portal \
   -e SECRET_KEY=replace-with-a-long-random-secret \
   nie-hostel-portal
 ```
+
+With this command, open `http://localhost:5000` in any modern browser on the
+same computer. If you publish the container on a different host port, use that
+port in the browser address.
 
 Create a warden account interactively inside the running container:
 
