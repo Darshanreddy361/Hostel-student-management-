@@ -773,7 +773,7 @@ def index():
         return redirect(url_for("warden_dashboard"))
     if session.get("role") == "student":
         return redirect(url_for("student_dashboard"))
-    return render_template("home.html", today=date.today().isoformat())
+    return render_template("home.html")
 
 
 @app.route("/login", methods=["GET", "POST"])

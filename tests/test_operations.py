@@ -111,11 +111,13 @@ class HostelOperationsTests(unittest.TestCase):
             datetime_mock.now.side_effect = lambda timezone: utc_instant.astimezone(timezone)
             self.assertEqual(portal.hostel_today(), date(2026, 11, 20))
 
-    def test_public_homepage_showcases_features_with_labeled_preview(self):
+    def test_public_homepage_has_no_sample_meal_menu_preview(self):
         response = portal.app.test_client().get("/")
         self.assertEqual(response.status_code, 200)
-        self.assertIn(b"Today's menu", response.data)
-        self.assertIn(b"Illustrative sample content", response.data)
+        self.assertNotIn(b"SAMPLE PREVIEW", response.data)
+        self.assertNotIn(b"Illustrative sample content", response.data)
+        self.assertNotIn(b"Idli", response.data)
+        self.assertIn(b"A menu for every meal", response.data)
         self.assertIn(b"Attendance and complaints", response.data)
         self.assertIn(b"Visitors and outpasses", response.data)
         self.assertIn(b"Vendors and finance records", response.data)
